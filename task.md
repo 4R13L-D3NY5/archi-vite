@@ -1,0 +1,12 @@
+- `[x]` Inicializar estructura de directorios en XF
+- `[x]` Crear esqueleto de frontend React + Vite
+- `[x]` Configurar modelos de base de datos SQLAlchemy (Nodo y Documento)
+- `[x]` Implementar endpoints REST de creación y navegación de Nodos (Árbol N-ario)
+- `[x]` Desarrollar el algoritmo de autogeneración de Código Inteligente
+- `[x]` Diseñar la UI en React para visualizar el Árbol dinámico (react-d3-tree)
+- `[x]` Crear el visor y cargador de archivos del DMS integrado
+- `[x]` Implementar módulo de generación de Códigos QR por cada Nodo
+- `[x]` Integrar autenticación JWT y control de accesos RBAC (admin/lector) [XF Standard]
+- `[x]` Desarrollar versionamiento histórico en la carga de archivos DMS
+- `[x]` Implementar registros y panel de Logs de Auditoría en tiempo real
+- `[x]` Desarrollar módulo de exportación de inventarios estructurados en CSV
