@@ -39,7 +39,8 @@ import {
   Camera,
   UserPlus,
   Key,
-  FolderOpen
+  FolderOpen,
+  Cpu
 } from 'lucide-react';
 
 const API_BASE_URL = 'http://localhost:8000';
@@ -205,6 +206,17 @@ export default function App() {
   const fileInputRef = useRef(null);
   const nodeSpecificUploadRef = useRef(null);
   const [newEtiquetaInput, setNewEtiquetaInput] = useState('');
+  
+  // Estados para Módulo de Codificación
+  const [configCodificacion, setConfigCodificacion] = useState({
+    separador: '-',
+    digitos_correlativo: 3,
+    usar_abreviacion_padre: true,
+    prefijo_global: ''
+  });
+  const [manualCodigoInput, setManualCodigoInput] = useState('');
+  const [isManualCodigoActive, setIsManualCodigoActive] = useState(false);
+
   // Estado de Movimiento / Re-ubicación
   const [showMoveModal, setShowMoveModal] = useState(false);
   const [moveTargetId, setMoveTargetId] = useState('');
@@ -773,6 +785,21 @@ export default function App() {
       console.error("Error al conectar con la API de Archi-vite:", err);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // Cargar Configuración de Codificación Inteligente
+  const fetchConfigCodificacion = async () => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/configuracion-codificacion/`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setConfigCodificacion(data);
+      }
+    } catch (err) {
+      console.error("Error al cargar la configuración de codificación:", err);
     }
   };
 
@@ -1456,6 +1483,7 @@ export default function App() {
       fetchLogs();
       fetchPersonas();
       fetchRolesOrganizacion();
+      fetchConfigCodificacion();
     }
   }, [token]);
 
@@ -1474,6 +1502,8 @@ export default function App() {
         fetchRolesOrganizacion();
       } else if (activeMenu === 'auditoria') {
         fetchLogs();
+      } else if (activeMenu === 'codificacion') {
+        fetchConfigCodificacion();
       }
     }
   }, [activeMenu]);
@@ -1605,7 +1635,8 @@ export default function App() {
       abreviacion: newNodeAbbreviation.trim().toUpperCase(),
       parent_id: parentId,
       es_ubicacion_fisica: isPhysicalLocation,
-      detalles_ubicacion: isPhysicalLocation ? { creado_via: "web_ui" } : null
+      detalles_ubicacion: isPhysicalLocation ? { creado_via: "web_ui" } : null,
+      codigo_inteligente: isManualCodigoActive && manualCodigoInput.trim() ? manualCodigoInput.trim().toUpperCase() : null
     };
 
     try {
@@ -1651,6 +1682,8 @@ export default function App() {
         setAddParentNode(null);
         setAddParentSearchQuery('');
         setNodeImageFile(null);
+        setManualCodigoInput('');
+        setIsManualCodigoActive(false);
         setShowAddModal(false);
         triggerNotification("Categoría Creada", `Se registró '${nuevoNodo.nombre}' con éxito.`);
       } else {
@@ -2835,6 +2868,150 @@ export default function App() {
     );
   };
 
+  const handleSaveCodificacion = async (e) => {
+    e.preventDefault();
+    try {
+      setIsLoading(true);
+      const res = await fetch(`${API_BASE_URL}/configuracion-codificacion/`, {
+        method: 'PUT',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}` 
+        },
+        body: JSON.stringify(configCodificacion)
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setConfigCodificacion(data);
+        triggerNotification("Reglas Actualizadas", "La configuración de codificación inteligente se guardó con éxito.");
+        await fetchTreeData();
+      } else {
+        const errData = await res.json();
+        triggerNotification("Error al Guardar", errData.detail || "No se pudo actualizar la configuración.");
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const renderCodificacionView = () => {
+    return (
+      <div style={{ padding: '40px', display: 'flex', flexDirection: 'column', gap: '24px', overflowY: 'auto', height: '100%', boxSizing: 'border-box' }}>
+        <div>
+          <h2 style={{ margin: 0, fontSize: '24px', fontWeight: 700, color: '#fff' }}>Parametrización de Codificación Inteligente</h2>
+          <span style={{ fontSize: '13px', color: '#8f9cae' }}>Configura las reglas globales de nomenclatura para las subcategorías lógicas y físicas.</span>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '30px', alignItems: 'start' }}>
+          
+          {/* Formulario de Configuración */}
+          <form onSubmit={handleSaveCodificacion} className="glass-panel" style={{ padding: '24px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.06)', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <h3 style={{ margin: '0 0 10px 0', fontSize: '16px', color: '#c084fc', fontWeight: 600 }}>⚙️ Reglas de Generación</h3>
+            
+            {/* Prefijo Global */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <span style={{ fontSize: '12px', color: '#8f9cae', fontWeight: 500 }}>Prefijo Global Fijo:</span>
+              <input 
+                type="text" 
+                placeholder="Ej: UAGRM, XF, vacio..."
+                value={configCodificacion?.prefijo_global || ''}
+                onChange={(e) => setConfigCodificacion({...configCodificacion, prefijo_global: e.target.value})}
+                style={{ background: '#121624', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px', padding: '10px 12px', color: '#fff', fontSize: '13px', fontFamily: 'Outfit', outline: 'none' }}
+              />
+            </div>
+
+            {/* Separador */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <span style={{ fontSize: '12px', color: '#8f9cae', fontWeight: 500 }}>Separador de Niveles:</span>
+              <select 
+                value={configCodificacion?.separador || '-'}
+                onChange={(e) => setConfigCodificacion({...configCodificacion, separador: e.target.value})}
+                style={{ background: '#121624', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px', padding: '10px 12px', color: '#fff', fontSize: '13px', fontFamily: 'Outfit', outline: 'none', cursor: 'pointer' }}
+              >
+                <option value="-">Guion medio ( - )</option>
+                <option value=".">Punto ( . )</option>
+                <option value="/">Barra ( / )</option>
+                <option value="_">Guion bajo ( _ )</option>
+                <option value="">Sin separador (junto)</option>
+              </select>
+            </div>
+
+            {/* Dígitos Correlativo */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <span style={{ fontSize: '12px', color: '#8f9cae', fontWeight: 500 }}>Longitud del Correlativo:</span>
+              <select 
+                value={configCodificacion?.digitos_correlativo || 3}
+                onChange={(e) => setConfigCodificacion({...configCodificacion, digitos_correlativo: parseInt(e.target.value)})}
+                style={{ background: '#121624', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px', padding: '10px 12px', color: '#fff', fontSize: '13px', fontFamily: 'Outfit', outline: 'none', cursor: 'pointer' }}
+              >
+                <option value={2}>2 Dígitos (ej: 01)</option>
+                <option value={3}>3 Dígitos (ej: 001)</option>
+                <option value={4}>4 Dígitos (ej: 0001)</option>
+              </select>
+            </div>
+
+            {/* Usar código del padre */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                <span style={{ fontSize: '12px', color: '#fff', fontWeight: 500 }}>Estructura Jerárquica Hereditaria</span>
+                <span style={{ fontSize: '10px', color: '#8f9cae' }}>Incluye el código del padre en los códigos hijos.</span>
+              </div>
+              <input 
+                type="checkbox" 
+                checked={configCodificacion?.usar_abreviacion_padre || false}
+                onChange={(e) => setConfigCodificacion({...configCodificacion, usar_abreviacion_padre: e.target.checked})}
+                style={{ width: '18px', height: '18px', cursor: 'pointer', accentColor: '#a855f7' }}
+              />
+            </div>
+
+            <button 
+              type="submit" 
+              className="btn-primary"
+              style={{ padding: '12px', borderRadius: '8px', fontSize: '13px', fontWeight: 600, cursor: 'pointer', marginTop: '10px' }}
+            >
+              Guardar Configuración
+            </button>
+          </form>
+
+          {/* Panel Explicativo */}
+          <div className="glass-panel" style={{ padding: '24px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.06)', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <h3 style={{ margin: 0, fontSize: '16px', color: '#22c55e', fontWeight: 600 }}>💡 Previsualización de Código Inteligente</h3>
+            
+            <div style={{ fontSize: '13px', color: '#cbd5e1', lineHeight: 1.6 }}>
+              <p style={{ margin: '0 0 10px 0' }}>El sistema generará los códigos de las nuevas categorías utilizando la siguiente fórmula:</p>
+              
+              <div style={{ background: '#121624', padding: '14px', borderRadius: '8px', fontFamily: 'monospace', fontSize: '12px', border: '1px solid rgba(255,255,255,0.04)', color: '#a855f7', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <div>Fórmula General:</div>
+                <div style={{ color: '#fff', fontWeight: 600 }}>
+                  {configCodificacion?.prefijo_global ? `[${configCodificacion.prefijo_global}]` : ''}
+                  {configCodificacion?.usar_abreviacion_padre ? '[CÓDIGO_PADRE]' : ''}
+                  {configCodificacion?.separador ? `[${configCodificacion.separador}]` : ''}
+                  [ABREVIACIÓN]
+                  {configCodificacion?.separador ? `[${configCodificacion.separador}]` : ''}
+                  [{'0'.repeat((configCodificacion?.digitos_correlativo || 3) - 1)}1]
+                </div>
+              </div>
+
+              <p style={{ margin: '14px 0 0 0' }}>
+                <strong>Ejemplo práctico:</strong> Si creas la categoría "Facultad de Ingeniería" (Abreviación: <code>ING</code>) dentro de "Contratos" (Código Padre: <code>CON</code>), el código resultante será:
+              </p>
+
+              <div style={{ background: '#121624', padding: '12px', borderRadius: '8px', fontFamily: 'monospace', fontSize: '13px', border: '1px solid rgba(255,255,255,0.04)', color: '#22c55e', marginTop: '8px', fontWeight: 600, textAlign: 'center' }}>
+                {configCodificacion?.prefijo_global ? configCodificacion.prefijo_global : ''}
+                {configCodificacion?.usar_abreviacion_padre ? `CON${configCodificacion.separador || ''}` : ''}
+                ING
+                {configCodificacion?.separador || ''}
+                {'0'.repeat((configCodificacion?.digitos_correlativo || 3) - 1)}1
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   if (!token) {
     return (
       <div style={{ display: 'flex', width: '100vw', height: '100vh', alignItems: 'center', justifyContent: 'center', background: 'radial-gradient(circle at center, #1e1b4b 0%, #09090b 100%)', fontFamily: 'Outfit, sans-serif' }}>
@@ -3184,6 +3361,26 @@ export default function App() {
                 <Clock size={15} color={activeMenu === 'auditoria' ? '#c084fc' : '#8f9cae'} />
                 <span style={{ fontSize: '13px', fontWeight: activeMenu === 'auditoria' ? 600 : 500 }}>Registro Auditoría</span>
               </div>
+
+              <div 
+                onClick={() => setActiveMenu('codificacion')} 
+                className="hover-scale" 
+                style={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: '12px', 
+                  padding: '10px 14px', 
+                  borderRadius: '8px', 
+                  cursor: 'pointer', 
+                  color: activeMenu === 'codificacion' ? '#fff' : '#cbd5e1', 
+                  background: activeMenu === 'codificacion' ? 'rgba(168, 85, 247, 0.15)' : 'rgba(255,255,255,0.01)', 
+                  border: activeMenu === 'codificacion' ? '1px solid rgba(168, 85, 247, 0.3)' : '1px solid rgba(255,255,255,0.03)',
+                  marginTop: '4px'
+                }}
+              >
+                <Cpu size={15} color={activeMenu === 'codificacion' ? '#c084fc' : '#8f9cae'} />
+                <span style={{ fontSize: '13px', fontWeight: activeMenu === 'codificacion' ? 600 : 500 }}>Config. Codificación</span>
+              </div>
             </>
           )}
         </div>
@@ -3394,6 +3591,9 @@ export default function App() {
 
         {/* E. Vista Auditoría */}
         {activeMenu === 'auditoria' && renderAuditoriaView()}
+
+        {/* F. Vista Parametrización de Codificación */}
+        {activeMenu === 'codificacion' && renderCodificacionView()}
 
       </main>
 
@@ -4273,6 +4473,38 @@ export default function App() {
                   )}
                 </div>
               )}
+
+              {/* Sección de Codificación Manual o Auto */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', borderTop: '1px solid rgba(255,255,255,0.04)', paddingTop: '12px', marginTop: '4px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <input 
+                    type="checkbox" 
+                    id="manual-code"
+                    checked={isManualCodigoActive}
+                    onChange={(e) => {
+                      setIsManualCodigoActive(e.target.checked);
+                      if (!e.target.checked) setManualCodigoInput('');
+                    }}
+                    style={{ cursor: 'pointer', width: '16px', height: '16px', accentColor: '#a855f7' }}
+                  />
+                  <label htmlFor="manual-code" style={{ fontSize: '13px', color: '#fff', cursor: 'pointer', fontWeight: 500 }}>
+                    Ingresar código de forma manual
+                  </label>
+                </div>
+                
+                {isManualCodigoActive && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginTop: '2px' }}>
+                    <span style={{ fontSize: '11px', color: '#8f9cae' }}>Código Personalizado:</span>
+                    <input 
+                      type="text" 
+                      placeholder="Ej: FAC-MED-G25"
+                      value={manualCodigoInput}
+                      onChange={(e) => setManualCodigoInput(e.target.value)}
+                      style={{ background: '#121624', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px', padding: '10px 14px', color: '#fff', fontSize: '13px', outline: 'none', fontFamily: 'Outfit' }}
+                    />
+                  </div>
+                )}
+              </div>
             </div>
 
             <div style={{ display: 'flex', justifySelf: 'stretch', gap: '12px', marginTop: '8px' }}>
@@ -4285,6 +4517,8 @@ export default function App() {
                   setAddParentNode(null);
                   setAddParentSearchQuery('');
                   setNodeImageFile(null);
+                  setManualCodigoInput('');
+                  setIsManualCodigoActive(false);
                   setShowAddModal(false);
                 }}
                 className="glass-card"

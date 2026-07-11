@@ -542,7 +542,17 @@ def seed_database():
         # Enlace 6: Nodo Académico de Bases de Datos I (Asistencias) -> Ingeniería de Sistemas (Contratos)
         db.add(models.EnlaceCruzado(nodo_origen_id=asi_asignatura_db1.id, nodo_destino_id=con_sis_g26.id))
 
+        # 11. CONFIGURACIÓN DE CODIFICACIÓN SEMILLA
+        print("Inyectando configuración de codificación por defecto...")
+        conf_cod = models.ConfiguracionCodificacion(
+            separador="-",
+            digitos_correlativo=3,
+            usar_abreviacion_padre=True,
+            prefijo_global=""
+        )
+        db.add(conf_cod)
         db.commit()
+
         print("¡Inyección del set universitario completo de demostración y pruebas finalizada con total éxito!")
 
     except Exception as e:

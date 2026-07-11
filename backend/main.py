@@ -64,6 +64,23 @@ class NodoCreate(BaseModel):
     es_ubicacion_fisica: bool = False
     detalles_ubicacion: Optional[dict] = None
     etiquetas: Optional[List[str]] = None
+    codigo_inteligente: Optional[str] = None
+
+class ConfiguracionCodificacionResponse(BaseModel):
+    id: int
+    separador: str
+    digitos_correlativo: int
+    usar_abreviacion_padre: bool
+    prefijo_global: str
+
+    class Config:
+        from_attributes = True
+
+class ConfiguracionCodificacionUpdate(BaseModel):
+    separador: str
+    digitos_correlativo: int
+    usar_abreviacion_padre: bool
+    prefijo_global: str
 
 class EstadoWorkflowResponse(BaseModel):
     id: int
@@ -283,30 +300,42 @@ def registrar_log(db: Session, usuario: str, accion: str, codigo_nodo: Optional[
 def calcular_codigo_inteligente(db: Session, abreviacion: str, parent_id: Optional[int]) -> str:
     abbr_clean = abreviacion.strip().upper()
     
+    # Consultar configuración activa
+    config = db.query(models.ConfiguracionCodificacion).first()
+    separador = config.separador if config is not None else "-"
+    digitos = config.digitos_correlativo if config is not None else 3
+    usar_padre = config.usar_abreviacion_padre if config is not None else True
+    prefijo_global = config.prefijo_global if config is not None else ""
+
+    fmt = f"0{digitos}d"
+
     if parent_id is None:
-        prefix = abbr_clean
+        prefix = f"{prefijo_global}{abbr_clean}"
         query = db.query(models.Nodo).filter(
             models.Nodo.parent_id == None,
-            models.Nodo.codigo_inteligente.like(f"{prefix}-%")
+            models.Nodo.codigo_inteligente.like(f"{prefix}{separador}%")
         )
         count = query.count()
-        correlativo = f"{count + 1:03d}"
-        return f"{prefix}-{correlativo}"
+        correlativo = format(count + 1, fmt)
+        return f"{prefix}{separador}{correlativo}"
         
     parent_node = db.query(models.Nodo).filter(models.Nodo.id == parent_id).first()
     if not parent_node:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Nodo padre no encontrado.")
         
-    parent_code = parent_node.codigo_inteligente
-    prefix = f"{parent_code}-{abbr_clean}"
+    if usar_padre:
+        parent_code = parent_node.codigo_inteligente
+        prefix = f"{parent_code}{separador}{abbr_clean}"
+    else:
+        prefix = f"{prefijo_global}{abbr_clean}"
     
     query = db.query(models.Nodo).filter(
         models.Nodo.parent_id == parent_id,
-        models.Nodo.codigo_inteligente.like(f"{prefix}-%")
+        models.Nodo.codigo_inteligente.like(f"{prefix}{separador}%")
     )
     count = query.count()
-    correlativo = f"{count + 1:03d}"
-    return f"{prefix}-{correlativo}"
+    correlativo = format(count + 1, fmt)
+    return f"{prefix}{separador}{correlativo}"
 
 # ============================================================================
 # TRADUCCIÓN INTELIGENTE DE RUTAS DE WINDOWS A DOCKER (WSL)
@@ -378,7 +407,14 @@ def crear_nodo(nodo: NodoCreate, db: Session = Depends(get_db), current_user: mo
     abbr = nodo.abreviacion.strip()
     if not abbr or len(abbr) > 10:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="La abreviación debe tener máximo 10 caracteres.")
-    codigo = calcular_codigo_inteligente(db, abbr, nodo.parent_id)
+    
+    if nodo.codigo_inteligente and nodo.codigo_inteligente.strip():
+        codigo = nodo.codigo_inteligente.strip().upper()
+        existente = db.query(models.Nodo).filter(models.Nodo.codigo_inteligente == codigo).first()
+        if existente:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"El código inteligente '{codigo}' ya está registrado.")
+    else:
+        codigo = calcular_codigo_inteligente(db, abbr, nodo.parent_id)
     
     db_nodo = models.Nodo(
         nombre=nodo.nombre.strip(),
@@ -1660,3 +1696,44 @@ def obtener_expediente_persona(persona_id: int, db: Session = Depends(get_db)):
         "documentos": documentos,
         "categorias": categorias
     }
+
+
+# --------------------------------------------------------------------
+# CONFIGURACIÓN DE CODIFICACIÓN INTELIGENTE
+# --------------------------------------------------------------------
+
+@app.get("/configuracion-codificacion/", response_model=ConfiguracionCodificacionResponse)
+def obtener_configuracion_codificacion(db: Session = Depends(get_db)):
+    config = db.query(models.ConfiguracionCodificacion).first()
+    if not config:
+        config = models.ConfiguracionCodificacion(
+            separador="-",
+            digitos_correlativo=3,
+            usar_abreviacion_padre=True,
+            prefijo_global=""
+        )
+        db.add(config)
+        db.commit()
+        db.refresh(config)
+    return config
+
+@app.put("/configuracion-codificacion/", response_model=ConfiguracionCodificacionResponse)
+def actualizar_configuracion_codificacion(payload: ConfiguracionCodificacionUpdate, db: Session = Depends(get_db), current_user: models.Usuario = Depends(require_admin)):
+    config = db.query(models.ConfiguracionCodificacion).first()
+    if not config:
+        config = models.ConfiguracionCodificacion()
+        db.add(config)
+        db.commit()
+        db.refresh(config)
+        
+    config.separador = payload.separador
+    config.digitos_correlativo = payload.digitos_correlativo
+    config.usar_abreviacion_padre = payload.usar_abreviacion_padre
+    config.prefijo_global = payload.prefijo_global
+    
+    db.commit()
+    db.refresh(config)
+    
+    registrar_log(db, current_user.username, f"Actualizó reglas de codificación: Separador='{config.separador}', Digitos={config.digitos_correlativo}, UsarPadre={config.usar_abreviacion_padre}, Prefijo='{config.prefijo_global}'", "CONFIG-COD")
+    
+    return config

@@ -141,3 +141,14 @@ class EnlaceCruzado(Base):
     documento_origen = relationship("Documento", foreign_keys=[documento_origen_id], backref=backref("enlaces_cruzados_orig_docs", cascade="all, delete-orphan"))
 
 
+class ConfiguracionCodificacion(Base):
+    __tablename__ = "configuracion_codificacion"
+
+    id = Column(Integer, primary_key=True, index=True)
+    separador = Column(String(5), default="-")
+    digitos_correlativo = Column(Integer, default=3)
+    usar_abreviacion_padre = Column(Boolean, default=True)
+    prefijo_global = Column(String(20), default="")
+    creado_en = Column(DateTime(timezone=True), server_default=func.now())
+
+
