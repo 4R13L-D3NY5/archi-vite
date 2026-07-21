@@ -40,7 +40,9 @@ import {
   UserPlus,
   Key,
   FolderOpen,
-  Cpu
+  Cpu,
+  HelpCircle,
+  Database
 } from 'lucide-react';
 
 const API_BASE_URL = 'http://localhost:8000';
@@ -54,8 +56,15 @@ export default function App() {
   const [loginPass, setLoginPass] = useState('');
   const [loginError, setLoginError] = useState('');
 
+  // Control de cambio de contraseña obligatorio por primer ingreso
+  const [showChangePasswordPanel, setShowChangePasswordPanel] = useState(false);
+  const [tempTokenData, setTempTokenData] = useState(null); // Almacena temporalmente el token del login antes del cambio
+  const [newPasswordVal, setNewPasswordVal] = useState('');
+  const [confirmPasswordVal, setConfirmPasswordVal] = useState('');
+  const [changePasswordError, setChangePasswordError] = useState('');
+
   // Menú Activo ('dashboard' | 'jerarquias' | 'workflow' | 'usuarios' | 'auditoria')
-  const [activeMenu, setActiveMenu] = useState('jerarquias');
+  const [activeMenu, setActiveMenu] = useState('dashboard');
 
   // Datos de Jerarquía y Documentos
   const [treeData, setTreeData] = useState(null);
@@ -91,6 +100,7 @@ export default function App() {
   const [newEstadoColor, setNewEstadoColor] = useState('#a855f7');
   const [newEstadoSecuencia, setNewEstadoSecuencia] = useState(1);
   const [newEstadoAplicaA, setNewEstadoAplicaA] = useState('ambos'); // "categoria", "archivo", "ambos"
+  const [activeTooltip, setActiveTooltip] = useState(null); // 'nombre', 'aplicaA', 'color', 'secuencia'
 
   // Formulario de Nueva Transición
   const [fromEstadoId, setFromEstadoId] = useState('');
@@ -105,6 +115,23 @@ export default function App() {
     inputValue: '',
     onConfirm: null
   });
+
+  // Preferencias de Personalización y Accesibilidad del Sistema
+  const [prefTemaColor, setPrefTemaColor] = useState(localStorage.getItem('pref_tema_color') || 'cyberpunk');
+  const [prefTipoFuente, setPrefTipoFuente] = useState(localStorage.getItem('pref_tipo_fuente') || 'Outfit');
+  const [prefEfectosGlow, setPrefEfectosGlow] = useState(localStorage.getItem('pref_efectos_glow') !== 'false');
+  const [prefSonidoQR, setPrefSonidoQR] = useState(localStorage.getItem('pref_sonido_qr') !== 'false');
+
+  // Restablecimiento del Sistema (Zona de Peligro)
+  const [resetConfirmText, setResetConfirmText] = useState('');
+  const [isResetting, setIsResetting] = useState(false);
+  const [showResetConfirmModal, setShowResetConfirmModal] = useState(false);
+
+  // Copias de Seguridad y Usabilidad Jerárquica
+  const [backups, setBackups] = useState([]);
+  const [backupTipo, setBackupTipo] = useState('total');
+  const [isCreatingBackup, setIsCreatingBackup] = useState(false);
+  const [linuxCollapsedNodes, setLinuxCollapsedNodes] = useState({});
   
   // Búsquedas
   const [searchQuery, setSearchQuery] = useState('');
@@ -126,6 +153,8 @@ export default function App() {
   const [addParentSearchQuery, setAddParentSearchQuery] = useState('');
   const [addParentSearchResults, setAddParentSearchResults] = useState([]);
   const [nodeImageFile, setNodeImageFile] = useState(null);
+  const [newNodeRetentionMonths, setNewNodeRetentionMonths] = useState('');
+  const [newNodeTransferDestinationId, setNewNodeTransferDestinationId] = useState('');
   const [isLoading, setIsLoading] = useState(true);
 
   // Catálogo de Personas y Directorio
@@ -145,6 +174,9 @@ export default function App() {
   const [newPersonaNombre, setNewPersonaNombre] = useState('');
   const [newPersonaRolId, setNewPersonaRolId] = useState('');
   const [newPersonaCarrera, setNewPersonaCarrera] = useState('');
+  const [newPersonaCrearUsuario, setNewPersonaCrearUsuario] = useState(false);
+  const [newPersonaUsername, setNewPersonaUsername] = useState('');
+  const [newPersonaPassword, setNewPersonaPassword] = useState('');
   
   // Modal Expediente Consolidado
   const [showExpedienteModal, setShowExpedienteModal] = useState(false);
@@ -169,6 +201,20 @@ export default function App() {
   const [linkTargetType, setLinkTargetType] = useState('nodo'); // 'nodo' | 'documento'
   const [linkTargetId, setLinkTargetId] = useState(null);
   const [linkTargetName, setLinkTargetName] = useState('');
+
+  // Permisos de categoría
+  const [permisosNodo, setPermisosNodo] = useState([]);
+  const [selectedPermisoDestinatarioType, setSelectedPermisoDestinatarioType] = useState('usuario'); // 'usuario' | 'rol'
+  const [selectedPermisoUsuarioId, setSelectedPermisoUsuarioId] = useState('');
+  const [selectedPermisoRolId, setSelectedPermisoRolId] = useState('');
+  const [selectedPermisoTipo, setSelectedPermisoTipo] = useState('lectura');
+
+  // Vistas guardadas de usuario
+  const [vistasGuardadas, setVistasGuardadas] = useState([]);
+  const [selectedVistaId, setSelectedVistaId] = useState('');
+  const [showSaveVistaModal, setShowSaveVistaModal] = useState(false);
+  const [newVistaName, setNewVistaName] = useState('');
+  const [reportesEstadisticas, setReportesEstadisticas] = useState(null);
 
   // Modal de Escaneo
   const [showScannerModal, setShowScannerModal] = useState(false);
@@ -197,6 +243,7 @@ export default function App() {
   // Datos Globales del Dashboard y Auditoría
   const [statsData, setStatsData] = useState(null);
   const [auditLogs, setAuditLogs] = useState([]);
+  const [alertasRetencion, setAlertasRetencion] = useState([]);
   
   // Drag over states
   const [dragOverNodeCode, setDragOverNodeCode] = useState(null);
@@ -280,11 +327,11 @@ export default function App() {
         triggerNotification("Re-ubicación Completada", "El elemento fue movido y se recalcularon códigos inteligentes en cascada.");
       } else {
         const errData = await res.json();
-        alert(`Error: ${errData.detail || 'No se pudo mover el elemento'}`);
+        triggerNotification("Error al mover", errData.detail || 'No se pudo mover el elemento', "error");
       }
     } catch (err) {
       console.error(err);
-      alert("Error de red al mover el elemento.");
+      triggerNotification("Error de Red", "Error de red al mover el elemento.", "error");
     } finally {
       setIsLoading(false);
     }
@@ -292,13 +339,13 @@ export default function App() {
 
 
   // Estado de Notificación Flotante
-  const [notification, setNotification] = useState({ show: false, title: '', message: '' });
+  const [notification, setNotification] = useState({ show: false, title: '', message: '', tipo: 'info' });
 
-  const triggerNotification = (title, message) => {
-    setNotification({ show: true, title, message });
+  const triggerNotification = (title, message, tipo = 'info') => {
+    setNotification({ show: true, title, message, tipo });
     setTimeout(() => {
       setNotification(prev => ({ ...prev, show: false }));
-    }, 4000);
+    }, 4500);
   };
 
   // Borrar Categoría / Nodo DMS
@@ -333,7 +380,7 @@ export default function App() {
             triggerNotification("Categoría Eliminada", "El nodo y sus descendientes han sido purgados de PostgreSQL.");
           } else {
             const errData = await res.json();
-            alert(`Error: ${errData.detail}`);
+            triggerNotification("Error al Eliminar", errData.detail || "Operación fallida", "error");
           }
         } catch (err) {
           console.error(err);
@@ -372,7 +419,7 @@ export default function App() {
             triggerNotification("Archivo Purgado", "El documento ha sido eliminado con éxito de la nube.");
           } else {
             const errData = await res.json();
-            alert(`Error: ${errData.detail}`);
+            triggerNotification("Error al Purgar", errData.detail || "No se pudo eliminar el archivo", "error");
           }
         } catch (err) {
           console.error(err);
@@ -475,6 +522,8 @@ export default function App() {
     const isSelected = selectedNode?.attributes?.codigo === node.attributes?.codigo;
     const tieneHijos = node.children && node.children.length > 0;
     const isArchivo = node.attributes?.es_archivo || node.attributes?.tipo === 'Archivo DMS';
+    const isCollapsed = !!linuxCollapsedNodes[node.attributes?.codigo];
+    const hasAlert = node.attributes?.id && alertasRetencion.some(alerta => alerta.ubicacion_fisica?.id === node.attributes.id);
     
     const connector = isRoot ? '' : (isLast ? '└── ' : '├── ');
     const nextPrefix = isRoot ? '' : (isLast ? prefix + '    ' : prefix + '│   ');
@@ -508,17 +557,36 @@ export default function App() {
             color: isSelected ? '#fff' : '#cbd5e1',
             whiteSpace: 'pre'
           }}
-          className="hover-scale"
+          className={`hover-scale ${hasAlert ? 'retencion-alerta-blink' : ''}`}
         >
           <span style={{ color: '#475569' }}>{prefix}{connector}</span>
+          
+          {/* Indicador de Despliegue interactivo para carpetas lógicas/físicas */}
+          {tieneHijos && (
+            <span 
+              onClick={(e) => {
+                e.stopPropagation();
+                setLinuxCollapsedNodes(prev => ({
+                  ...prev,
+                  [node.attributes?.codigo]: !prev[node.attributes?.codigo]
+                }));
+              }}
+              style={{ color: '#06b6d4', paddingRight: '4px', cursor: 'pointer', userSelect: 'none', fontWeight: 'bold' }}
+            >
+              {isCollapsed ? '▶' : '▼'}
+            </span>
+          )}
+          
           {isArchivo ? (
             <FileText size={14} color="#ef4444" style={{ minWidth: '14px' }} />
+          ) : hasAlert ? (
+            <AlertTriangle size={14} color="#ef4444" className="retencion-alerta-blink" style={{ minWidth: '14px' }} />
           ) : node.attributes?.es_ubicacion_fisica ? (
             <MapPin size={14} color="#22c55e" style={{ minWidth: '14px' }} />
           ) : (
             <Folder size={14} color="#c084fc" style={{ minWidth: '14px' }} />
           )}
-          <span style={{ fontWeight: isSelected ? 'bold' : 'normal', color: isArchivo ? '#cbd5e1' : (node.attributes?.es_ubicacion_fisica ? '#22c55e' : '#fff') }}>
+          <span style={{ fontWeight: isSelected ? 'bold' : 'normal', color: hasAlert ? '#ef4444' : (isArchivo ? '#cbd5e1' : (node.attributes?.es_ubicacion_fisica ? '#22c55e' : '#fff')) }}>
             {node.name}
           </span>
           <span style={{ color: '#8f9cae', fontSize: '10px' }}>({node.attributes?.codigo})</span>
@@ -540,7 +608,7 @@ export default function App() {
           )}
         </div>
 
-        {tieneHijos && (
+        {tieneHijos && !isCollapsed && (
           <div style={{ display: 'flex', flexDirection: 'column' }}>
             {node.children.map((child, index) => 
               renderLinuxStyleTree(child, nextPrefix, index === node.children.length - 1, false)
@@ -558,6 +626,7 @@ export default function App() {
     const borderColor = nodeDatum.attributes?.estado_color || '#a855f7';
     const isPhysical = nodeDatum.attributes?.es_ubicacion_fisica;
     const isArchivo = nodeDatum.attributes?.es_archivo || nodeDatum.attributes?.tipo === 'Archivo DMS';
+    const hasAlert = nodeDatum.attributes?.id && alertasRetencion.some(alerta => alerta.ubicacion_fisica?.id === nodeDatum.attributes.id);
 
     return (
       <g>
@@ -600,7 +669,7 @@ export default function App() {
             onDrop={(e) => {
               if (!isArchivo) handleDropFileOnNode(e, nodeDatum);
             }}
-            className="glass-card"
+            className={`glass-card ${hasAlert ? 'retencion-alerta-blink' : ''}`}
             style={{
               width: '100%',
               height: '100%',
@@ -608,10 +677,14 @@ export default function App() {
               borderRadius: '12px',
               border: dragOverNodeCode === nodeDatum.attributes?.codigo
                 ? '2.5px solid #22c55e'
-                : `1.5px solid ${isSelected ? '#c084fc' : (isArchivo ? 'rgba(239, 68, 68, 0.4)' : `${borderColor}33`)}`,
+                : hasAlert
+                  ? '1.5px solid #ef4444'
+                  : `1.5px solid ${isSelected ? '#c084fc' : (isArchivo ? 'rgba(239, 68, 68, 0.4)' : `${borderColor}33`)}`,
               boxShadow: dragOverNodeCode === nodeDatum.attributes?.codigo
                 ? '0 0 20px rgba(34, 197, 94, 0.4)'
-                : (isSelected ? '0 0 15px rgba(168, 85, 247, 0.25)' : 'none'),
+                : hasAlert
+                  ? '0 0 15px rgba(239, 68, 68, 0.45)'
+                  : (isSelected ? '0 0 15px rgba(168, 85, 247, 0.25)' : 'none'),
               background: '#0a0d17',
               display: 'flex',
               flexDirection: 'column',
@@ -626,6 +699,8 @@ export default function App() {
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', overflow: 'hidden' }}>
                 {isArchivo ? (
                   <FileText size={14} color="#ef4444" style={{ minWidth: '14px' }} />
+                ) : hasAlert ? (
+                  <AlertTriangle size={14} color="#ef4444" className="retencion-alerta-blink" style={{ minWidth: '14px' }} />
                 ) : isPhysical ? (
                   <MapPin size={14} color="#22c55e" style={{ minWidth: '14px' }} />
                 ) : (
@@ -677,7 +752,22 @@ export default function App() {
                 )}
                 {tieneHijos && (
                   <span 
-                    onClick={toggleNode}
+                    onClick={() => {
+                      const nodeId = nodeDatum.attributes?.id;
+                      if (nodeId) {
+                        let expandidos = [];
+                        try {
+                          expandidos = JSON.parse(localStorage.getItem(`pref_arbol_expandidos_${tipoJerarquia}`) || '[]');
+                        } catch(e) {}
+                        if (nodeDatum._collapsed) {
+                          if (!expandidos.includes(nodeId)) expandidos.push(nodeId);
+                        } else {
+                          expandidos = expandidos.filter(id => id !== nodeId);
+                        }
+                        localStorage.setItem(`pref_arbol_expandidos_${tipoJerarquia}`, JSON.stringify(expandidos));
+                      }
+                      toggleNode();
+                    }}
                     style={{ 
                       background: 'none', 
                       border: 'none', 
@@ -715,22 +805,99 @@ export default function App() {
 
       if (res.ok) {
         const data = await res.json();
-        setToken(data.access_token);
-        setUserRol(data.rol);
-        setUsername(data.username);
-        
-        localStorage.setItem('token', data.access_token);
-        localStorage.setItem('userRol', data.rol);
-        localStorage.setItem('username', data.username);
-        
-        setLoginUser('');
-        setLoginPass('');
+        if (data.debe_cambiar_password) {
+          setTempTokenData(data);
+          setShowChangePasswordPanel(true);
+          setLoginUser('');
+          setLoginPass('');
+        } else {
+          setToken(data.access_token);
+          setUserRol(data.rol);
+          setUsername(data.username);
+          
+          localStorage.setItem('token', data.access_token);
+          localStorage.setItem('userRol', data.rol);
+          localStorage.setItem('username', data.username);
+          
+          setLoginUser('');
+          setLoginPass('');
+        }
       } else {
         const errData = await res.json();
         setLoginError(errData.detail || 'Credenciales inválidas.');
       }
     } catch (err) {
       setLoginError('Error de red al conectar con el servidor.');
+    }
+  };
+
+  const handleChangePasswordSubmit = async (e) => {
+    e.preventDefault();
+    setChangePasswordError('');
+    if (newPasswordVal.trim() !== confirmPasswordVal.trim()) {
+      setChangePasswordError('Las contraseñas no coinciden.');
+      return;
+    }
+    if (newPasswordVal.trim().length < 4) {
+      setChangePasswordError('La contraseña debe tener al menos 4 caracteres.');
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      const res = await fetch(`${API_BASE_URL}/usuarios/cambiar-password`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${tempTokenData.access_token}`
+        },
+        body: JSON.stringify({ new_password: newPasswordVal.trim() })
+      });
+
+      if (res.ok) {
+        // Guardar credenciales de sesión normales
+        setToken(tempTokenData.access_token);
+        setUserRol(tempTokenData.rol);
+        setUsername(tempTokenData.username);
+        
+        localStorage.setItem('token', tempTokenData.access_token);
+        localStorage.setItem('userRol', tempTokenData.rol);
+        localStorage.setItem('username', tempTokenData.username);
+
+        // Limpiar
+        setTempTokenData(null);
+        setShowChangePasswordPanel(false);
+        setNewPasswordVal('');
+        setConfirmPasswordVal('');
+        triggerNotification("Contraseña Actualizada", "Ingreso concedido con éxito.");
+      } else {
+        const errData = await res.json();
+        setChangePasswordError(errData.detail || 'No se pudo actualizar la contraseña.');
+      }
+    } catch (err) {
+      setChangePasswordError('Error al conectar con el servidor.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const fetchReportesEstadisticas = async () => {
+    try {
+      setIsLoading(true);
+      const res = await fetch(`${API_BASE_URL}/reportes/estadisticas`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setReportesEstadisticas(data);
+      } else {
+        triggerNotification("Error de Reportes", "No se pudieron cargar los datos estadísticos.", "error");
+      }
+    } catch (err) {
+      console.error(err);
+      triggerNotification("Error de Conexión", "Error de red al obtener reportes.", "error");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -760,14 +927,33 @@ export default function App() {
 
   // 1. Cargar el árbol desde el backend
   const fetchTreeData = async (tipo = tipoJerarquia) => {
+    if (!token) return;
     try {
       setIsLoading(true);
-      const res = await fetch(`${API_BASE_URL}/nodos/arbol?tipo=${tipo}`);
+      const res = await fetch(`${API_BASE_URL}/nodos/arbol?tipo=${tipo}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.status === 401) {
+        handleSessionExpired();
+        return;
+      }
       if (res.ok) {
         const data = await res.json();
         
         const inicializarColapsos = (node) => {
-          const updated = { ...node, _collapsed: false }; 
+          const nodeId = node.attributes?.id;
+          let expandidos = [];
+          try {
+            const guardadosRaw = JSON.parse(localStorage.getItem(`pref_arbol_expandidos_guardados_${tipo}`) || '[]');
+            expandidos = guardadosRaw.map(x => String(typeof x === 'object' ? x.id : x));
+            if (expandidos.length === 0) {
+              const expandidosTemp = JSON.parse(localStorage.getItem(`pref_arbol_expandidos_${tipo}`) || '[]');
+              expandidos = expandidosTemp.map(String);
+            }
+          } catch(e) {}
+          const esRaiz = !nodeId;
+          const isExpanded = esRaiz || expandidos.includes(String(nodeId));
+          const updated = { ...node, _collapsed: !isExpanded }; 
           if (node.children) {
             updated.children = node.children.map(inicializarColapsos);
           }
@@ -776,6 +962,37 @@ export default function App() {
 
         const parsedData = inicializarColapsos(data);
         setTreeData(parsedData);
+        setTreeKey(prev => prev + 1); // Forzar la recreación del árbol D3 con el nuevo estado de colapsos
+
+        // Sincronizar automáticamente el estado de colapsos de la consola de comandos
+        try {
+          let expandidosInt = [];
+          const guardadosRaw = JSON.parse(localStorage.getItem(`pref_arbol_expandidos_guardados_${tipo}`) || '[]');
+          expandidosInt = guardadosRaw.map(x => parseInt(typeof x === 'object' ? x.id : x));
+          if (expandidosInt.length === 0) {
+            const expandidosTemp = JSON.parse(localStorage.getItem(`pref_arbol_expandidos_${tipo}`) || '[]');
+            expandidosInt = expandidosTemp.map(x => parseInt(x));
+          }
+
+          const colapsos = {};
+          const recorrerConsola = (node) => {
+            const id = node.attributes?.id;
+            const codigo = node.attributes?.codigo;
+            if (id && codigo) {
+              const esRaiz = !id;
+              if (!esRaiz) {
+                colapsos[codigo] = !expandidosInt.includes(parseInt(id));
+              }
+            }
+            if (node.children) {
+              node.children.forEach(recorrerConsola);
+            }
+          };
+          recorrerConsola(data);
+          setLinuxCollapsedNodes(colapsos);
+        } catch (e) {
+          console.error("Error al sincronizar colapsos de la consola:", e);
+        }
         
         if (!selectedNode && Object.keys(data).length > 0) {
           setSelectedNode(parsedData);
@@ -785,6 +1002,167 @@ export default function App() {
       console.error("Error al conectar con la API de Archi-vite:", err);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // --- RESTABLECER EL SISTEMA (ZONA DE PELIGRO) ---
+  const handleResetSistema = async () => {
+    if (resetConfirmText !== 'INICIALIZAR-SISTEMA') return;
+    
+    try {
+      setIsResetting(true);
+      const res = await fetch(`${API_BASE_URL}/sistema/resetear`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      
+      if (res.ok) {
+        setShowResetConfirmModal(false);
+        triggerNotification("Sistema Restablecido", "La base de datos y archivos han sido inicializados.");
+        setTimeout(() => {
+          window.location.reload();
+        }, 1800);
+      } else {
+        const errorData = await res.json();
+        triggerNotification("Error de Restablecimiento", errorData.detail || "No se pudo validar las credenciales de seguridad.");
+      }
+    } catch (err) {
+      console.error("Error al resetear el sistema:", err);
+      triggerNotification("Error de Conexión", "No se pudo conectar con el servidor.");
+    } finally {
+      setIsResetting(false);
+    }
+  };
+
+  // --- GUARDAR DESPLIEGUE PERSONALIZADO DEL ÁRBOL ---
+  const handleGuardarVistaArbol = () => {
+    if (!treeData) {
+      triggerNotification("Error de Vista", "No hay datos cargados en el árbol para guardar.");
+      return;
+    }
+
+    const expandidos = [];
+    const mapaNodos = {};
+    const recorrerNodos = (node) => {
+      const id = node.attributes?.id;
+      if (id) {
+        mapaNodos[id] = {
+          nombre: node.name,
+          tipo: node.attributes?.es_ubicacion_fisica ? 'Física' : 'Lógica',
+          codigo: node.attributes?.codigo
+        };
+      }
+      if (node.children) {
+        node.children.forEach(recorrerNodos);
+      }
+    };
+    recorrerNodos(treeData);
+
+    if (activeView === 'linux') {
+      Object.keys(mapaNodos).forEach(id => {
+        const nodeInfo = mapaNodos[id];
+        const isCollapsed = !!linuxCollapsedNodes[nodeInfo.codigo];
+        if (!isCollapsed) {
+          expandidos.push({
+            id: parseInt(id),
+            nombre: nodeInfo.nombre,
+            tipo: nodeInfo.tipo
+          });
+        }
+      });
+    } else {
+      let expandidosIds = [];
+      try {
+        expandidosIds = JSON.parse(localStorage.getItem('pref_arbol_expandidos') || '[]');
+      } catch(e) {}
+
+      if (expandidosIds.length === 0) {
+        const recorrerGrafico = (node) => {
+          if (node._collapsed === false) {
+            const id = node.attributes?.id;
+            if (id) expandidosIds.push(id);
+          }
+          if (node.children) {
+            node.children.forEach(recorrerGrafico);
+          }
+        };
+        recorrerGrafico(treeData);
+      }
+
+      expandidosIds.forEach(id => {
+        const numId = parseInt(id);
+        if (mapaNodos[numId]) {
+          expandidos.push({
+            id: numId,
+            nombre: mapaNodos[numId].nombre,
+            tipo: mapaNodos[numId].tipo
+          });
+        }
+      });
+    }
+
+    localStorage.setItem('pref_arbol_expandidos_guardados', JSON.stringify(expandidos));
+    
+    const ids = expandidos.map(x => x.id);
+    localStorage.setItem('pref_arbol_expandidos', JSON.stringify(ids));
+
+    triggerNotification("Vista Guardada", `Se guardó tu configuración con ${expandidos.length} ramas desplegadas.`);
+  };
+
+  // --- MÓDULO DE COPIAS DE SEGURIDAD (BACKUPS) ---
+  const fetchBackups = async () => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/sistema/backups`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setBackups(data);
+      }
+    } catch (err) {
+      console.error("Error al cargar copias de seguridad:", err);
+    }
+  };
+
+  const handleCrearBackup = async () => {
+    setIsCreatingBackup(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}/sistema/backup/crear?tipo=${backupTipo}`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        triggerNotification("Copia Creada", `Se generó el archivo ${data.filename} con éxito.`);
+        fetchBackups();
+      } else {
+        const errData = await res.json();
+        triggerNotification("Error de Backup", errData.detail || "No se pudo crear el backup.");
+      }
+    } catch (err) {
+      console.error(err);
+      triggerNotification("Error de Conexión", "No se pudo conectar con el servidor.");
+    } finally {
+      setIsCreatingBackup(false);
+    }
+  };
+
+  const handleEliminarBackup = async (nombre) => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/sistema/backup/eliminar/${nombre}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        triggerNotification("Copia Eliminada", "El archivo de respaldo fue eliminado del servidor.");
+        fetchBackups();
+      } else {
+        const errData = await res.json();
+        triggerNotification("Error al Eliminar", errData.detail || "No se pudo borrar el backup.");
+      }
+    } catch (err) {
+      console.error(err);
+      triggerNotification("Error de Conexión", "No se pudo conectar con el servidor.");
     }
   };
 
@@ -826,6 +1204,57 @@ export default function App() {
       }
     } catch (err) {
       console.error("Error al cargar transiciones:", err);
+    }
+  };
+
+  // Cargar Alertas de Retención y Transferencia
+  const fetchAlertasRetencion = async () => {
+    if (!token) return;
+    try {
+      const res = await fetch(`${API_BASE_URL}/retencion/alertas`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.status === 401) {
+        handleSessionExpired();
+        return;
+      }
+      if (res.ok) {
+        const data = await res.json();
+        setAlertasRetencion(data);
+      }
+    } catch (err) {
+      console.error("Error al cargar alertas de retención:", err);
+    }
+  };
+
+  const handleTransferirDocumentoFisico = async (docId) => {
+    if (userRol !== 'admin') return;
+    try {
+      setIsLoading(true);
+      const res = await fetch(`${API_BASE_URL}/retencion/transferir/${docId}`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.status === 401) {
+        handleSessionExpired();
+        return;
+      }
+      if (res.ok) {
+        triggerNotification("Transferencia Completada", "El documento ha sido transferido físicamente a la ubicación de destino.");
+        await fetchAlertasRetencion();
+        await fetchTreeData();
+        setTreeKey(prev => prev + 1);
+        if (selectedNode && selectedNode.attributes?.id) {
+          await fetchDocuments(selectedNode.attributes.id);
+        }
+      } else {
+        const errData = await res.json();
+        triggerNotification("Error de Transferencia", errData.detail || 'Operación fallida', "error");
+      }
+    } catch (err) {
+      console.error("Error de red al transferir documento:", err);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -944,7 +1373,7 @@ export default function App() {
         triggerNotification("Rol Corporativo Creado", "Se guardó el nuevo rol en el sistema.");
       } else {
         const errData = await res.json();
-        alert(`Error: ${errData.detail || 'No se pudo crear el rol'}`);
+        triggerNotification("Error al crear Rol", errData.detail || 'No se pudo crear el rol', "error");
       }
     } catch (err) {
       console.error(err);
@@ -953,24 +1382,33 @@ export default function App() {
     }
   };
 
-  const handleDeleteRolOrganizacion = async (rolId) => {
-    if (!window.confirm("¿Está seguro de eliminar este rol? Se desvinculará de las personas asociadas.")) return;
-    try {
-      setIsLoading(true);
-      const res = await fetch(`${API_BASE_URL}/roles-organizacion/${rolId}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (res.ok) {
-        await fetchRolesOrganizacion();
-        await fetchPersonas();
-        triggerNotification("Rol Eliminado", "El rol fue removido de la base de datos.");
+  const handleDeleteRolOrganizacion = (rolId) => {
+    setConfirmModal({
+      show: true,
+      title: 'Eliminar Rol de Organización',
+      message: '¿Está seguro de eliminar este rol? Se desvinculará de todas las personas asociadas.',
+      requireTextConfirm: false,
+      inputValue: '',
+      onConfirm: async () => {
+        setConfirmModal(prev => ({ ...prev, show: false }));
+        try {
+          setIsLoading(true);
+          const res = await fetch(`${API_BASE_URL}/roles-organizacion/${rolId}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          if (res.ok) {
+            await fetchRolesOrganizacion();
+            await fetchPersonas();
+            triggerNotification("Rol Eliminado", "El rol fue removido de la base de datos.");
+          }
+        } catch (err) {
+          console.error(err);
+        } finally {
+          setIsLoading(false);
+        }
       }
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setIsLoading(false);
-    }
+    });
   };
 
   // Registrar persona en el catálogo central
@@ -982,7 +1420,9 @@ export default function App() {
       identificacion: newPersonaIdentificacion.trim(),
       nombre_completo: newPersonaNombre.trim(),
       rol_actual_id: parseInt(newPersonaRolId),
-      carrera_departamento: newPersonaCarrera.trim() || null
+      carrera_departamento: newPersonaCarrera.trim() || null,
+      crear_usuario: newPersonaCrearUsuario,
+      username: newPersonaCrearUsuario ? newPersonaUsername.trim() : null
     };
     
     try {
@@ -998,23 +1438,276 @@ export default function App() {
       
       if (res.ok) {
         await fetchPersonas();
+        try {
+          const uRes = await fetch(`${API_BASE_URL}/usuarios/`, { headers: { 'Authorization': `Bearer ${token}` } });
+          if (uRes.ok) setUsuarios(await uRes.json());
+        } catch(errUsr) {}
+
         setNewPersonaIdentificacion('');
         setNewPersonaNombre('');
         if (rolesOrganizacion.length > 0) {
           setNewPersonaRolId(rolesOrganizacion[0].id);
         }
         setNewPersonaCarrera('');
+        setNewPersonaCrearUsuario(false);
+        setNewPersonaUsername('');
+        setNewPersonaPassword('');
         setShowCreatePersonaModal(false);
         triggerNotification("Persona Registrada", "Se guardó al miembro en el Directorio Central.");
       } else {
         const errData = await res.json();
-        alert(`Error: ${errData.detail || 'No se pudo registrar la persona'}`);
+        triggerNotification("Error al registrar", errData.detail || 'No se pudo registrar la persona', "error");
       }
     } catch (err) {
       console.error(err);
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Obtener permisos de acceso de la categoría
+  const fetchPermisosNodo = async (nodoId) => {
+    if (!nodoId) return;
+    try {
+      const res = await fetch(`${API_BASE_URL}/nodos/${nodoId}/permisos`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        setPermisosNodo(await res.json());
+      }
+    } catch (err) {
+      console.error("Error al obtener permisos de categoría:", err);
+    }
+  };
+
+  // Crear un nuevo permiso de acceso en la categoría
+  const handleCreatePermisoNodo = async (e) => {
+    e.preventDefault();
+    if (!selectedNode?.attributes?.id) return;
+    if (selectedPermisoDestinatarioType === 'usuario' && !selectedPermisoUsuarioId) return;
+    if (selectedPermisoDestinatarioType === 'rol' && !selectedPermisoRolId) return;
+
+    const payloadBody = {
+      tipo_permiso: selectedPermisoTipo
+    };
+
+    if (selectedPermisoDestinatarioType === 'usuario') {
+      payloadBody.usuario_id = parseInt(selectedPermisoUsuarioId);
+    } else {
+      payloadBody.rol_organizacion_id = parseInt(selectedPermisoRolId);
+    }
+
+    try {
+      setIsLoading(true);
+      const res = await fetch(`${API_BASE_URL}/nodos/${selectedNode.attributes.id}/permisos`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(payloadBody)
+      });
+
+      if (res.ok) {
+        await fetchPermisosNodo(selectedNode.attributes.id);
+        setSelectedPermisoUsuarioId('');
+        setSelectedPermisoRolId('');
+        triggerNotification("Permiso Otorgado", "El acceso se concedió con éxito.");
+      } else {
+        const errData = await res.json();
+        triggerNotification("Error de Permiso", errData.detail || 'No se pudo otorgar el permiso', "error");
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Eliminar un permiso de acceso de la categoría
+  const handleDeletePermisoNodo = async (permisoId) => {
+    if (!permisoId || !selectedNode?.attributes?.id) return;
+    try {
+      setIsLoading(true);
+      const res = await fetch(`${API_BASE_URL}/nodos/permisos/${permisoId}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        await fetchPermisosNodo(selectedNode.attributes.id);
+        triggerNotification("Acceso Revocado", "Se removió el permiso del usuario.");
+      } else {
+        const errData = await res.json();
+        triggerNotification("Error al revocar", errData.detail || 'No se pudo revocar el acceso', "error");
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Obtener vistas guardadas del usuario
+  const fetchVistasGuardadas = async () => {
+    if (!token) return;
+    try {
+      const res = await fetch(`${API_BASE_URL}/vistas/`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        setVistasGuardadas(await res.json());
+      }
+    } catch (err) {
+      console.error("Error al obtener vistas guardadas:", err);
+    }
+  };
+
+  // Helper para obtener la lista de IDs de nodos expandidos actuales según la vista activa
+  const obtenerNodosExpandidosActuales = () => {
+    const expandidos = [];
+    if (!treeData) return expandidos;
+
+    const mapaNodos = {};
+    const recorrerNodos = (node) => {
+      const id = node.attributes?.id;
+      if (id) {
+        mapaNodos[id] = {
+          nombre: node.name,
+          tipo: node.attributes?.es_ubicacion_fisica ? 'Física' : 'Lógica',
+          codigo: node.attributes?.codigo
+        };
+      }
+      if (node.children) {
+        node.children.forEach(recorrerNodos);
+      }
+    };
+    recorrerNodos(treeData);
+
+    // Si la vista activa es Consola Linux (activeMenu === 'consola_tree')
+    if (activeMenu === 'consola_tree') {
+      Object.keys(mapaNodos).forEach(id => {
+        const nodeInfo = mapaNodos[id];
+        const isCollapsed = !!linuxCollapsedNodes[nodeInfo.codigo];
+        if (!isCollapsed) {
+          expandidos.push(parseInt(id));
+        }
+      });
+    } else {
+      // Árbol Gráfico (D3)
+      let expandidosIds = [];
+      try {
+        expandidosIds = JSON.parse(localStorage.getItem(`pref_arbol_expandidos_${tipoJerarquia}`) || '[]');
+      } catch(e) {}
+
+      if (expandidosIds.length === 0) {
+        const recorrerGrafico = (node) => {
+          if (node._collapsed === false) {
+            const id = node.attributes?.id;
+            if (id) expandidosIds.push(id);
+          }
+          if (node.children) {
+            node.children.forEach(recorrerGrafico);
+          }
+        };
+        recorrerGrafico(treeData);
+      }
+      expandidosIds.forEach(id => {
+        const numId = parseInt(id);
+        if (mapaNodos[numId]) {
+          expandidos.push(numId);
+        }
+      });
+    }
+    return expandidos;
+  };
+
+  // Crear o actualizar una vista guardada por nombre
+  const handleSaveVista = async (e) => {
+    e.preventDefault();
+    if (!newVistaName.trim()) return;
+
+    const expandidos = obtenerNodosExpandidosActuales();
+
+    try {
+      setIsLoading(true);
+      const res = await fetch(`${API_BASE_URL}/vistas/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          nombre: newVistaName.trim(),
+          tipo_arbol: tipoJerarquia,
+          nodos_expandidos: expandidos
+        })
+      });
+
+      if (res.ok) {
+        const nuevaVista = await res.json();
+        triggerNotification("Vista Guardada", `La vista "${newVistaName}" fue registrada con éxito.`);
+        setNewVistaName('');
+        setShowSaveVistaModal(false);
+        await fetchVistasGuardadas();
+        setSelectedVistaId(nuevaVista.id.toString());
+      } else {
+        const errData = await res.json();
+        triggerNotification("Error al guardar", errData.detail || 'No se pudo guardar la vista', "error");
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Eliminar una vista guardada
+  const handleDeleteVista = (vistaId) => {
+    if (!vistaId) return;
+    setConfirmModal({
+      show: true,
+      title: 'Eliminar Configuración de Vista',
+      message: '¿Está seguro de eliminar esta configuración de vista? Esta acción no se puede deshacer.',
+      requireTextConfirm: false,
+      inputValue: '',
+      onConfirm: async () => {
+        setConfirmModal(prev => ({ ...prev, show: false }));
+        try {
+          setIsLoading(true);
+          const res = await fetch(`${API_BASE_URL}/vistas/${vistaId}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          if (res.ok) {
+            triggerNotification("Vista Eliminada", "La configuración de vista fue removida.");
+            setSelectedVistaId('');
+            await fetchVistasGuardadas();
+          } else {
+            const errData = await res.json();
+            triggerNotification("Error al eliminar", errData.detail || 'No se pudo eliminar la vista', "error");
+          }
+        } catch (err) {
+          console.error(err);
+        } finally {
+          setIsLoading(false);
+        }
+      }
+    });
+  };
+
+  // Cargar/Aplicar una vista guardada en el árbol
+  const handleApplyVista = (vistaId) => {
+    const vista = vistasGuardadas.find(v => v.id === parseInt(vistaId));
+    if (!vista) return;
+
+    // Guardar los IDs en el localStorage para que D3 y la consola los lean
+    const idsString = vista.nodos_expandidos.map(String);
+    localStorage.setItem(`pref_arbol_expandidos_guardados_${vista.tipo_arbol}`, JSON.stringify(idsString));
+    localStorage.setItem(`pref_arbol_expandidos_${vista.tipo_arbol}`, JSON.stringify(idsString));
+
+    // Refrescar el árbol actual
+    fetchTreeData(tipoJerarquia);
+    triggerNotification("Vista Aplicada", `Se cargó la vista "${vista.nombre}" con éxito.`);
   };
 
   // Abrir expediente consolidado
@@ -1029,7 +1722,7 @@ export default function App() {
         setSelectedPersonaExpediente(data);
         setShowExpedienteModal(true);
       } else {
-        alert("No se pudo obtener el expediente.");
+        triggerNotification("Error de Expediente", "No se pudo obtener el expediente.", "error");
       }
     } catch (err) {
       console.error(err);
@@ -1075,7 +1768,9 @@ export default function App() {
         setTreeKey(prev => prev + 1);
         if (selectedNode) {
           if (linkTargetType === 'nodo' && selectedNode.attributes?.id === linkTargetId) {
-            const resNode = await fetch(`${API_BASE_URL}/nodos/arbol?tipo=${tipoJerarquia}`);
+            const resNode = await fetch(`${API_BASE_URL}/nodos/arbol?tipo=${tipoJerarquia}`, {
+              headers: { 'Authorization': `Bearer ${token}` }
+            });
             if (resNode.ok) {
               const dataTree = await resNode.json();
               const findNode = (r, id) => {
@@ -1097,57 +1792,68 @@ export default function App() {
         }
       } else {
         const errData = await res.json();
-        alert(`Error: ${errData.detail || 'No se pudo crear la relación'}`);
+        triggerNotification("Error al Vincular", errData.detail || 'No se pudo crear la relación', "error");
       }
     } catch (err) {
-      alert("Error al conectar con el servidor.");
+      triggerNotification("Error de Conexión", "Error al conectar con el servidor.", "error");
     } finally {
       setIsLoading(false);
     }
   };
 
   // Eliminar vínculo de persona
-  const handleDeleteVinculoPersona = async (vinculoId, targetType, targetId) => {
-    if (!window.confirm("¿Está seguro de eliminar esta vinculación de persona?")) return;
-    try {
-      setIsLoading(true);
-      const res = await fetch(`${API_BASE_URL}/vinculos/persona/${vinculoId}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      
-      if (res.ok) {
-        triggerNotification("Vínculo Eliminado", "La relación se removió correctamente.");
-        await fetchTreeData();
-        setTreeKey(prev => prev + 1);
-        if (selectedNode) {
-          if (targetType === 'nodo' && selectedNode.attributes?.id === targetId) {
-            const resNode = await fetch(`${API_BASE_URL}/nodos/arbol?tipo=${tipoJerarquia}`);
-            if (resNode.ok) {
-              const dataTree = await resNode.json();
-              const findNode = (r, id) => {
-                if (r.attributes?.id === id) return r;
-                if (r.children) {
-                  for (let c of r.children) {
-                    const found = findNode(c, id);
-                    if (found) return found;
-                  }
+  const handleDeleteVinculoPersona = (vinculoId, targetType, targetId) => {
+    setConfirmModal({
+      show: true,
+      title: 'Eliminar Vinculación de Persona',
+      message: '¿Está seguro de eliminar esta vinculación de persona? Esta acción es irreversible.',
+      requireTextConfirm: false,
+      inputValue: '',
+      onConfirm: async () => {
+        setConfirmModal(prev => ({ ...prev, show: false }));
+        try {
+          setIsLoading(true);
+          const res = await fetch(`${API_BASE_URL}/vinculos/persona/${vinculoId}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          
+          if (res.ok) {
+            triggerNotification("Vínculo Eliminado", "La relación se removió correctamente.");
+            await fetchTreeData();
+            setTreeKey(prev => prev + 1);
+            if (selectedNode) {
+              if (targetType === 'nodo' && selectedNode.attributes?.id === targetId) {
+                const resNode = await fetch(`${API_BASE_URL}/nodos/arbol?tipo=${tipoJerarquia}`, {
+                  headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (resNode.ok) {
+                  const dataTree = await resNode.json();
+                  const findNode = (r, id) => {
+                    if (r.attributes?.id === id) return r;
+                    if (r.children) {
+                      for (let c of r.children) {
+                        const found = findNode(c, id);
+                        if (found) return found;
+                      }
+                    }
+                    return null;
+                  };
+                  const updatedN = findNode(dataTree, targetId);
+                  if (updatedN) setSelectedNode(updatedN);
                 }
-                return null;
-              };
-              const updatedN = findNode(dataTree, targetId);
-              if (updatedN) setSelectedNode(updatedN);
+              } else {
+                await fetchDocuments(selectedNode.attributes.id);
+              }
             }
-          } else {
-            await fetchDocuments(selectedNode.attributes.id);
           }
+        } catch (err) {
+          console.error(err);
+        } finally {
+          setIsLoading(false);
         }
       }
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setIsLoading(false);
-    }
+    });
   };
 
   // Crear enlace cruzado (Shortcut)
@@ -1185,38 +1891,47 @@ export default function App() {
         }
       } else {
         const errData = await res.json();
-        alert(`Error: ${errData.detail || 'No se pudo crear el acceso directo'}`);
+        triggerNotification("Error de Enlace", errData.detail || 'No se pudo crear el acceso directo', "error");
       }
     } catch (err) {
-      alert("Error de red al conectar con el servidor.");
+      triggerNotification("Error de Red", "Error de red al conectar con el servidor.", "error");
     } finally {
       setIsLoading(false);
     }
   };
 
   // Eliminar enlace cruzado
-  const handleDeleteEnlaceCruzado = async (enlaceId) => {
-    if (!window.confirm("¿Está seguro de eliminar este acceso directo virtual?")) return;
-    try {
-      setIsLoading(true);
-      const res = await fetch(`${API_BASE_URL}/vinculos/cruzado/${enlaceId}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      
-      if (res.ok) {
-        triggerNotification("Acceso Directo Eliminado", "La referencia se removió de esta carpeta.");
-        await fetchTreeData();
-        setTreeKey(prev => prev + 1);
-        if (selectedNode) {
-          await fetchDocuments(selectedNode.attributes.id);
+  const handleDeleteEnlaceCruzado = (enlaceId) => {
+    setConfirmModal({
+      show: true,
+      title: 'Eliminar Acceso Directo Virtual',
+      message: '¿Está seguro de eliminar este acceso directo virtual?',
+      requireTextConfirm: false,
+      inputValue: '',
+      onConfirm: async () => {
+        setConfirmModal(prev => ({ ...prev, show: false }));
+        try {
+          setIsLoading(true);
+          const res = await fetch(`${API_BASE_URL}/vinculos/cruzado/${enlaceId}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          
+          if (res.ok) {
+            triggerNotification("Acceso Directo Eliminado", "La referencia se removió de esta carpeta.");
+            await fetchTreeData();
+            setTreeKey(prev => prev + 1);
+            if (selectedNode) {
+              await fetchDocuments(selectedNode.attributes.id);
+            }
+          }
+        } catch (err) {
+          console.error(err);
+        } finally {
+          setIsLoading(false);
         }
       }
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setIsLoading(false);
-    }
+    });
   };
 
   // --------------------------------------------------------------------------
@@ -1233,7 +1948,7 @@ export default function App() {
         if (video) video.srcObject = stream;
       }, 300);
     } catch (err) {
-      alert("No se pudo iniciar la cámara web o no se tienen permisos.");
+      triggerNotification("Error de Cámara", "No se pudo iniciar la cámara web o no se tienen permisos.", "error");
     }
   };
 
@@ -1290,7 +2005,7 @@ export default function App() {
         ctx.fillStyle = '#f8fafc';
         ctx.fillRect(0, 0, 600, 800);
         
-        // Bordes y cuadrícula neón de XpertiFlow
+        // Bordes y cuadrícula neón de Archi-vite
         ctx.strokeStyle = 'rgba(168, 85, 247, 0.15)';
         ctx.lineWidth = 1;
         for (let x = 30; x < 600; x += 50) {
@@ -1308,7 +2023,7 @@ export default function App() {
         
         ctx.fillStyle = '#0f172a';
         ctx.font = 'bold 22px Outfit, sans-serif';
-        ctx.fillText('XPERTIFLOW GLOBAL DMS ECOSISTEMA', 50, 80);
+        ctx.fillText('ARCHI-VITE GLOBAL DMS ECOSISTEMA', 50, 80);
         
         ctx.fillStyle = '#6366f1';
         ctx.font = 'bold 13px monospace';
@@ -1316,7 +2031,7 @@ export default function App() {
         
         ctx.font = '12px Outfit, sans-serif';
         ctx.fillStyle = '#475569';
-        ctx.fillText(`Código DMS ID: XF-${Math.random().toString(36).substr(2, 9).toUpperCase()}`, 50, 170);
+        ctx.fillText(`Código DMS ID: AV-${Math.random().toString(36).substr(2, 9).toUpperCase()}`, 50, 170);
         ctx.fillText(`Fecha Digitalizado: ${new Date().toLocaleString()}`, 50, 195);
         ctx.fillText(`Operador Autenticado: ${username}`, 50, 220);
         
@@ -1326,7 +2041,7 @@ export default function App() {
         
         ctx.font = 'italic 11px Outfit, sans-serif';
         ctx.fillText('Este documento digitalizado posee OCR habilitado y vinculación cruzada', 50, 310);
-        ctx.fillText('dinámica de personas por relevancia (pesos del 1 al 10) en XpertiFlow.', 50, 330);
+        ctx.fillText('dinámica de personas por relevancia (pesos del 1 al 10) en Archi-vite.', 50, 330);
         
         // Firma
         ctx.strokeStyle = '#a855f7';
@@ -1405,11 +2120,11 @@ export default function App() {
           await fetchDocuments(selectedNode.attributes.id);
         }
       } else {
-        alert("No se pudo subir el archivo escaneado.");
+        triggerNotification("Error de Subida", "No se pudo subir el archivo escaneado.", "error");
       }
     } catch (err) {
       console.error(err);
-      alert("Error al conectar con el servidor.");
+      triggerNotification("Error de Conexión", "Error al conectar con el servidor.", "error");
     } finally {
       setIsLoading(false);
     }
@@ -1484,12 +2199,68 @@ export default function App() {
       fetchPersonas();
       fetchRolesOrganizacion();
       fetchConfigCodificacion();
+      fetchAlertasRetencion();
+      fetchVistasGuardadas();
     }
   }, [token]);
+
+  // Aplicar preferencias visuales en tiempo real y persistirlas
+  useEffect(() => {
+    const root = document.documentElement;
+    root.classList.remove('light-mode');
+    localStorage.removeItem('pref_modo_luz');
+    
+    // Paletas de Colores
+    let primary = '#a855f7';
+    let secondary = '#6366f1';
+    let primaryGlow = 'rgba(168, 85, 247, 0.35)';
+    let primaryGlowBg = 'rgba(168, 85, 247, 0.15)';
+    
+    if (prefTemaColor === 'ocean') {
+      primary = '#06b6d4';
+      secondary = '#3b82f6';
+      primaryGlow = 'rgba(6, 182, 212, 0.35)';
+      primaryGlowBg = 'rgba(6, 182, 212, 0.15)';
+    } else if (prefTemaColor === 'emerald') {
+      primary = '#10b981';
+      secondary = '#14b8a6';
+      primaryGlow = 'rgba(16, 185, 129, 0.35)';
+      primaryGlowBg = 'rgba(16, 185, 129, 0.15)';
+    } else if (prefTemaColor === 'amber') {
+      primary = '#f59e0b';
+      secondary = '#ef4444';
+      primaryGlow = 'rgba(245, 158, 11, 0.35)';
+      primaryGlowBg = 'rgba(245, 158, 11, 0.15)';
+    }
+    
+    root.style.setProperty('--primary-glow', primary);
+    root.style.setProperty('--secondary-glow', secondary);
+    root.style.setProperty('--primary-glow-bg', primaryGlowBg);
+    root.style.setProperty('--primary-glow-border', primaryGlow);
+    root.style.setProperty('--glow-shadow-intensity', prefEfectosGlow ? primaryGlow : 'transparent');
+    
+    // Tipografías
+    let font = 'Outfit, sans-serif';
+    if (prefTipoFuente === 'Inter') {
+      font = 'Inter, sans-serif';
+    } else if (prefTipoFuente === 'Fira Code') {
+      font = 'Fira Code, monospace';
+    }
+    root.style.setProperty('--font-family-system', font);
+    
+    // Persistencia
+    localStorage.setItem('pref_tema_color', prefTemaColor);
+    localStorage.setItem('pref_tipo_fuente', prefTipoFuente);
+    localStorage.setItem('pref_efectos_glow', prefEfectosGlow);
+    localStorage.setItem('pref_sonido_qr', prefSonidoQR);
+  }, [prefTemaColor, prefTipoFuente, prefEfectosGlow, prefSonidoQR]);
 
   // Ejecutar recargas automáticas cuando cambia el menú
   useEffect(() => {
     if (token) {
+      // Siempre refrescar alertas en segundo plano al cambiar de vista para mantener el contador exacto
+      fetchAlertasRetencion();
+
       if (activeMenu === 'dashboard') {
         fetchEstadisticas();
         fetchLogs();
@@ -1504,6 +2275,12 @@ export default function App() {
         fetchLogs();
       } else if (activeMenu === 'codificacion') {
         fetchConfigCodificacion();
+      } else if (activeMenu === 'configuracion') {
+        fetchBackups();
+      } else if (activeMenu === 'alertas') {
+        fetchAlertasRetencion();
+      } else if (activeMenu === 'reportes') {
+        fetchReportesEstadisticas();
       }
     }
   }, [activeMenu]);
@@ -1525,8 +2302,10 @@ export default function App() {
   useEffect(() => {
     if (selectedNode && selectedNode.attributes?.id) {
       fetchDocuments(selectedNode.attributes.id);
+      fetchPermisosNodo(selectedNode.attributes.id);
     } else {
       setDocuments([]);
+      setPermisosNodo([]);
     }
   }, [selectedNode]);
 
@@ -1636,7 +2415,9 @@ export default function App() {
       parent_id: parentId,
       es_ubicacion_fisica: isPhysicalLocation,
       detalles_ubicacion: isPhysicalLocation ? { creado_via: "web_ui" } : null,
-      codigo_inteligente: isManualCodigoActive && manualCodigoInput.trim() ? manualCodigoInput.trim().toUpperCase() : null
+      codigo_inteligente: isManualCodigoActive && manualCodigoInput.trim() ? manualCodigoInput.trim().toUpperCase() : null,
+      meses_retencion_limite: isPhysicalLocation && newNodeRetentionMonths ? parseInt(newNodeRetentionMonths) : null,
+      nodo_destino_transferencia_id: isPhysicalLocation && newNodeTransferDestinationId ? parseInt(newNodeTransferDestinationId) : null
     };
 
     try {
@@ -1684,15 +2465,17 @@ export default function App() {
         setNodeImageFile(null);
         setManualCodigoInput('');
         setIsManualCodigoActive(false);
+        setNewNodeRetentionMonths('');
+        setNewNodeTransferDestinationId('');
         setShowAddModal(false);
         triggerNotification("Categoría Creada", `Se registró '${nuevoNodo.nombre}' con éxito.`);
       } else {
         const errData = await res.json();
-        alert(`Error: ${errData.detail || 'No se pudo crear la categoría.'}`);
+        triggerNotification("Error al crear", errData.detail || 'No se pudo crear la categoría.', "error");
       }
     } catch (err) {
       console.error(err);
-      alert("Error de red al conectar con el servidor.");
+      triggerNotification("Error de Red", "Error de red al conectar con el servidor.", "error");
     } finally {
       setIsLoading(false);
     }
@@ -1737,7 +2520,7 @@ export default function App() {
       fetchEstadisticas();
     } catch (err) {
       console.error(err);
-      alert("Error al procesar la subida masiva de archivos.");
+      triggerNotification("Error de Subida", "Error al procesar la subida masiva de archivos.", "error");
     } finally {
       setIsLoading(false);
     }
@@ -1882,6 +2665,10 @@ export default function App() {
         method: 'PUT',
         headers: { 'Authorization': `Bearer ${token}` }
       });
+      if (res.status === 401) {
+        handleSessionExpired();
+        return;
+      }
       if (res.ok) {
         const updatedNode = await res.json();
         setSelectedNode(prev => ({
@@ -2057,6 +2844,10 @@ export default function App() {
         method: 'PUT',
         headers: { 'Authorization': `Bearer ${token}` }
       });
+      if (res.status === 401) {
+        handleSessionExpired();
+        return;
+      }
       if (res.ok) {
         if (selectedNode && selectedNode.attributes?.id) {
           await fetchDocuments(selectedNode.attributes.id);
@@ -2280,7 +3071,7 @@ export default function App() {
     return (
       <div className="glass-panel" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px', border: '1px solid rgba(255,255,255,0.06)', background: 'rgba(10,14,23,0.4)', borderRadius: '12px', overflow: 'hidden' }}>
         <h4 style={{ margin: 0, fontSize: '15px', color: '#fff', display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Palette size={16} color="#c084fc" /> Diagrama Interactivo de Flujo de Estados (Ecosistema XF)
+          <Palette size={16} color="#c084fc" /> Diagrama Interactivo de Flujo de Estados (Ecosistema Archi-vite)
         </h4>
         
         <div style={{ width: '100%', overflowX: 'auto', background: '#0b0f19', borderRadius: '8px', padding: '10px 0' }}>
@@ -2403,66 +3194,604 @@ export default function App() {
 
   // 1. Dashboard de Métricas
   const renderDashboardView = () => {
-    if (!statsData) return <div style={{ color: '#8f9cae', padding: '40px' }}>Cargando métricas...</div>;
+    const isStatsLoading = !statsData;
+    const stats = statsData || {
+      total_categorias: 0,
+      total_ubicaciones: 0,
+      total_documentos: 0,
+      distribucion: [],
+      tipos_archivo: { pdf: 0, imagenes: 0, excel: 0, otros: 0 }
+    };
+
+    // Calcular metadatos del repositorio
+    const totalDocsCount = typeof stats.total_documentos === 'number' ? stats.total_documentos : 0;
+    const totalBytes = totalDocsCount * 184510; // Tamaño aproximado simulado (180kb por PDF)
+    const repoSizeFormatted = totalBytes > 1024 * 1024 
+      ? `${(totalBytes / (1024 * 1024)).toFixed(1)} MB` 
+      : `${(totalBytes / 1024).toFixed(0)} KB`;
+
+    // Distribución 100% real de la base de datos
+    const distribucionReal = stats.distribucion || [];
+    const totalDocumentosStats = totalDocsCount;
 
     return (
       <div style={{ padding: '40px', display: 'flex', flexDirection: 'column', gap: '30px', overflowY: 'auto', height: '100%', boxSizing: 'border-box' }}>
-        <div>
-          <h2 style={{ margin: 0, fontSize: '24px', fontWeight: 700, color: '#fff' }}>Dashboard de Gestión Documental</h2>
-          <span style={{ fontSize: '13px', color: '#8f9cae' }}>Estadísticas globales de Archi-vite (Ecosistema XF)</span>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div>
+            <h2 style={{ margin: 0, fontSize: '24px', fontWeight: 700, color: 'var(--text-color-main)' }}>Dashboard de Gestión Documental</h2>
+            <span style={{ fontSize: '13px', color: 'var(--text-color-muted)' }}>Estadísticas globales de Archi-vite</span>
+          </div>
+          <div style={{ display: 'flex', gap: '10px' }}>
+            {isStatsLoading && (
+              <div style={{ padding: '6px 14px', background: 'rgba(168, 85, 247, 0.1)', border: '1px solid rgba(168, 85, 247, 0.3)', borderRadius: '8px', fontSize: '12px', color: '#c084fc', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 600 }} className="pulse-glow">
+                <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#a855f7', display: 'inline-block' }} />
+                Cargando métricas...
+              </div>
+            )}
+            <div style={{ padding: '6px 14px', background: 'var(--bg-color-card)', border: '1px solid var(--border-color-card)', borderRadius: '8px', fontSize: '12px', color: 'var(--text-color-muted)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: isStatsLoading ? '#eab308' : '#22c55e', display: 'inline-block' }} />
+              {isStatsLoading ? 'Sincronizando...' : 'Sincronizado con PostgreSQL'}
+            </div>
+          </div>
         </div>
 
         {/* Tarjetas Gigantes */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px' }}>
-          <div className="glass-panel" style={{ padding: '24px', border: '1px solid rgba(168, 85, 247, 0.25)', boxShadow: '0 0 15px rgba(168,85,247,0.05)' }}>
-            <span style={{ fontSize: '12px', color: '#8f9cae', fontWeight: 600, textTransform: 'uppercase' }}>Categorías Lógicas</span>
-            <h3 style={{ margin: '8px 0 0 0', fontSize: '36px', color: '#c084fc', fontWeight: 700 }}>{statsData.total_categorias}</h3>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px' }}>
+          <div className="glass-panel" style={{ padding: '24px', border: '1px solid rgba(168, 85, 247, 0.25)', boxShadow: '0 0 15px rgba(168,85,247,0.05)', position: 'relative', overflow: 'hidden' }}>
+            <div style={{ position: 'absolute', right: '-10px', bottom: '-10px', opacity: 0.05, color: '#fff' }}><Folder size={80} /></div>
+            <span style={{ fontSize: '12px', color: 'var(--text-color-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Categorías Lógicas</span>
+            <h3 style={{ margin: '8px 0 0 0', fontSize: '36px', color: 'var(--primary-glow)', fontWeight: 700 }}>{isStatsLoading ? 'Cargando...' : stats.total_categorias}</h3>
+            <div style={{ marginTop: '10px', fontSize: '11px', color: '#a855f7', display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <span>Estructura de taxonomías activas</span>
+            </div>
           </div>
-          <div className="glass-panel" style={{ padding: '24px', border: '1px solid rgba(34, 197, 94, 0.25)', boxShadow: '0 0 15px rgba(34,197,94,0.05)' }}>
-            <span style={{ fontSize: '12px', color: '#8f9cae', fontWeight: 600, textTransform: 'uppercase' }}>Ubicaciones Físicas</span>
-            <h3 style={{ margin: '8px 0 0 0', fontSize: '36px', color: '#22c55e', fontWeight: 700 }}>{statsData.total_ubicaciones}</h3>
+          <div className="glass-panel" style={{ padding: '24px', border: '1px solid rgba(34, 197, 94, 0.25)', boxShadow: '0 0 15px rgba(34,197,94,0.05)', position: 'relative', overflow: 'hidden' }}>
+            <div style={{ position: 'absolute', right: '-10px', bottom: '-10px', opacity: 0.05, color: '#fff' }}><MapPin size={80} /></div>
+            <span style={{ fontSize: '12px', color: 'var(--text-color-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Ubicaciones Físicas</span>
+            <h3 style={{ margin: '8px 0 0 0', fontSize: '36px', color: '#22c55e', fontWeight: 700 }}>{isStatsLoading ? 'Cargando...' : stats.total_ubicaciones}</h3>
+            <div style={{ marginTop: '10px', fontSize: '11px', color: '#22c55e', display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <span>Archivadores y depósitos</span>
+            </div>
           </div>
-          <div className="glass-panel" style={{ padding: '24px', border: '1px solid rgba(239, 68, 68, 0.25)', boxShadow: '0 0 15px rgba(239,68,68,0.05)' }}>
-            <span style={{ fontSize: '12px', color: '#8f9cae', fontWeight: 600, textTransform: 'uppercase' }}>Archivos DMS</span>
-            <h3 style={{ margin: '8px 0 0 0', fontSize: '36px', color: '#f87171', fontWeight: 700 }}>{statsData.total_documentos}</h3>
+          <div className="glass-panel" style={{ padding: '24px', border: '1px solid rgba(239, 68, 68, 0.25)', boxShadow: '0 0 15px rgba(239,68,68,0.05)', position: 'relative', overflow: 'hidden' }}>
+            <div style={{ position: 'absolute', right: '-10px', bottom: '-10px', opacity: 0.05, color: '#fff' }}><FileText size={80} /></div>
+            <span style={{ fontSize: '12px', color: 'var(--text-color-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Archivos DMS</span>
+            <h3 style={{ margin: '8px 0 0 0', fontSize: '36px', color: '#f87171', fontWeight: 700 }}>{isStatsLoading ? 'Cargando...' : stats.total_documentos}</h3>
+            <div style={{ marginTop: '10px', fontSize: '11px', color: '#f87171', display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <span>Documentos digitales firmados</span>
+            </div>
+          </div>
+          <div className="glass-panel" style={{ padding: '24px', border: '1px solid rgba(6, 182, 212, 0.25)', boxShadow: '0 0 15px rgba(6,182,212,0.05)', position: 'relative', overflow: 'hidden' }}>
+            <div style={{ position: 'absolute', right: '-10px', bottom: '-10px', opacity: 0.05, color: '#fff' }}><Database size={80} /></div>
+            <span style={{ fontSize: '12px', color: 'var(--text-color-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Espacio Usado</span>
+            <h3 style={{ margin: '8px 0 0 0', fontSize: '36px', color: '#06b6d4', fontWeight: 700 }}>{isStatsLoading ? 'Cargando...' : (stats.total_documentos > 0 ? repoSizeFormatted : '0 KB')}</h3>
+            <div style={{ marginTop: '10px', fontSize: '11px', color: '#06b6d4', display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <span>Media y metadatos DMS</span>
+            </div>
           </div>
         </div>
 
         {/* Distribución y Logs Recientes */}
         <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '24px' }}>
           
+          {/* Distribución por Nodos con Barras de Progreso Neón */}
           <div className="glass-panel" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <h4 style={{ margin: 0, fontSize: '16px', color: '#fff' }}>Distribución de Documentación</h4>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h4 style={{ margin: 0, fontSize: '16px', color: 'var(--text-color-main)', fontWeight: 600 }}>Distribución de Documentación por Nodos</h4>
+              <span style={{ fontSize: '11px', color: 'var(--text-color-muted)' }}>Proporción real en DMS</span>
+            </div>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              {distribucionReal.length > 0 ? (
+                distribucionReal.map((dist, idx) => {
+                  const percentage = Math.min(100, (dist.documentos / (totalDocumentosStats || 1)) * 100);
+                  return (
+                    <div key={idx} style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--text-color-main)' }}>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: idx % 2 === 0 ? 'var(--primary-glow)' : 'var(--secondary-glow)' }} />
+                          {dist.name}
+                        </span>
+                        <span style={{ fontWeight: 600, color: 'var(--primary-glow)' }}>{dist.documentos} archivos ({percentage.toFixed(0)}%)</span>
+                      </div>
+                      <div style={{ height: '10px', background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border-color-card)', borderRadius: '6px', overflow: 'hidden' }}>
+                        <div 
+                          style={{ 
+                            width: `${percentage}%`, 
+                            height: '100%', 
+                            background: `linear-gradient(to right, var(--primary-glow), var(--secondary-glow))`, 
+                            borderRadius: '6px',
+                            boxShadow: `0 0 8px var(--primary-glow)`,
+                            transition: 'width 1s cubic-bezier(0.4, 0, 0.2, 1)'
+                          }} 
+                        />
+                      </div>
+                    </div>
+                  );
+                })
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '10px', color: '#475569', padding: '40px 0' }}>
+                  <Folder size={32} color="#1e293b" />
+                  <span style={{ fontSize: '12.5px', color: '#64748b' }}>Crea tu primera categoría para ver su distribución.</span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Gráfico Donut de Tipos de Documento en SVG */}
+          <div className="glass-panel" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px', alignItems: 'center' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+              <h4 style={{ margin: 0, fontSize: '16px', color: 'var(--text-color-main)', fontWeight: 600 }}>Tipos de Archivo Registrados</h4>
+              <span style={{ fontSize: '11px', color: 'var(--text-color-muted)' }}>Sectores neón</span>
+            </div>
+
+            {(() => {
+              const pdfs = stats.tipos_archivo?.pdf || 0;
+              const imagenes = stats.tipos_archivo?.imagenes || 0;
+              const excel = stats.tipos_archivo?.excel || 0;
+              const otros = stats.tipos_archivo?.otros || 0;
+              const total = pdfs + imagenes + excel + otros;
+              
+              const pctPdf = total > 0 ? pdfs / total : 0;
+              const pctImg = total > 0 ? imagenes / total : 0;
+              const pctXls = total > 0 ? excel / total : 0;
+              const pctOtr = total > 0 ? otros / total : 0;
+              
+              const lenPdf = pctPdf * 314.16;
+              const lenImg = pctImg * 314.16;
+              const lenXls = pctXls * 314.16;
+              const lenOtr = pctOtr * 314.16;
+              
+              const offPdf = 0;
+              const offImg = -lenPdf;
+              const offXls = -(lenPdf + lenImg);
+              const offOtr = -(lenPdf + lenImg + lenXls);
+              
+              return (
+                <div style={{ display: 'flex', gap: '30px', alignItems: 'center', justifyContent: 'center', width: '100%', flex: 1, marginTop: '10px' }}>
+                  {/* Gráfico Donut de SVG */}
+                  <svg width="150" height="150" viewBox="0 0 150 150">
+                    <circle cx="75" cy="75" r="50" fill="transparent" stroke="rgba(255,255,255,0.02)" strokeWidth="18" />
+                    {total === 0 ? (
+                      <circle cx="75" cy="75" r="50" fill="transparent" stroke="rgba(255,255,255,0.05)" strokeWidth="18" />
+                    ) : (
+                      <>
+                        {lenPdf > 0 && (
+                          <circle cx="75" cy="75" r="50" fill="transparent" stroke="var(--primary-glow)" strokeWidth="18" 
+                                  strokeDasharray={`${lenPdf} 314.16`} strokeDashoffset={offPdf} strokeLinecap="round" style={{ filter: 'drop-shadow(0 0 5px var(--primary-glow))', transition: 'all 0.5s' }} />
+                        )}
+                        {lenImg > 0 && (
+                          <circle cx="75" cy="75" r="50" fill="transparent" stroke="var(--secondary-glow)" strokeWidth="18" 
+                                  strokeDasharray={`${lenImg} 314.16`} strokeDashoffset={offImg} strokeLinecap="round" style={{ filter: 'drop-shadow(0 0 5px var(--secondary-glow))', transition: 'all 0.5s' }} />
+                        )}
+                        {lenXls > 0 && (
+                          <circle cx="75" cy="75" r="50" fill="transparent" stroke="#22c55e" strokeWidth="18" 
+                                  strokeDasharray={`${lenXls} 314.16`} strokeDashoffset={offXls} strokeLinecap="round" style={{ filter: 'drop-shadow(0 0 5px #22c55e)', transition: 'all 0.5s' }} />
+                        )}
+                        {lenOtr > 0 && (
+                          <circle cx="75" cy="75" r="50" fill="transparent" stroke="#06b6d4" strokeWidth="18" 
+                                  strokeDasharray={`${lenOtr} 314.16`} strokeDashoffset={offOtr} strokeLinecap="round" style={{ filter: 'drop-shadow(0 0 5px #06b6d4)', transition: 'all 0.5s' }} />
+                        )}
+                      </>
+                    )}
+                    <text x="75" y="79" textAnchor="middle" fill="#fff" fontSize="12" fontWeight="700" fontFamily="Outfit">
+                      {total} Docs
+                    </text>
+                  </svg>
+
+                  {/* Leyenda */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '11px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--primary-glow)' }} />
+                      <span style={{ color: '#fff', fontWeight: 600 }}>PDF Académicos ({pdfs} · {(pctPdf * 100).toFixed(0)}%)</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--secondary-glow)' }} />
+                      <span style={{ color: '#fff', fontWeight: 600 }}>Anexos e Imágenes ({imagenes} · {(pctImg * 100).toFixed(0)}%)</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#22c55e' }} />
+                      <span style={{ color: '#fff', fontWeight: 600 }}>Hojas de Cálculo ({excel} · {(pctXls * 100).toFixed(0)}%)</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#06b6d4' }} />
+                      <span style={{ color: '#fff', fontWeight: 600 }}>Registros y Otros ({otros} · {(pctOtr * 100).toFixed(0)}%)</span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
+          </div>
+
+        </div>
+
+        {/* Segunda Fila: Actividad Semanal e Historial de Operaciones */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '24px' }}>
+          
+          {/* Gráfico de Líneas de Actividad Semanal */}
+          <div className="glass-panel" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h4 style={{ margin: 0, fontSize: '16px', color: 'var(--text-color-main)', fontWeight: 600 }}>Tendencia de Actividad Semanal</h4>
+              <span style={{ fontSize: '11px', color: 'var(--text-color-muted)' }}>Cargas de archivos por día</span>
+            </div>
+
+            {/* Gráfico de Líneas SVG Neón */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', flex: 1, justifyContent: 'center' }}>
+              <svg viewBox="0 0 500 160" style={{ width: '100%', height: '100%', overflow: 'visible' }}>
+                <defs>
+                  <linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="var(--primary-glow)" stopOpacity="0.25"/>
+                    <stop offset="100%" stopColor="var(--primary-glow)" stopOpacity="0.0"/>
+                  </linearGradient>
+                </defs>
+                {/* Cuadrícula de Fondo */}
+                <line x1="0" y1="30" x2="500" y2="30" stroke="rgba(255,255,255,0.02)" strokeWidth="1" />
+                <line x1="0" y1="70" x2="500" y2="70" stroke="rgba(255,255,255,0.02)" strokeWidth="1" />
+                <line x1="0" y1="110" x2="500" y2="110" stroke="rgba(255,255,255,0.02)" strokeWidth="1" />
+                
+                {/* Área bajo la curva */}
+                <path d="M 10 140 Q 90 80, 170 110 T 330 90 T 490 150 L 490 150 L 10 150 Z" fill="url(#areaGradient)" />
+                
+                {/* Línea de tendencia neón */}
+                <path d="M 10 140 Q 90 80, 170 110 T 330 90 T 490 150" fill="none" stroke="var(--primary-glow)" strokeWidth="3.5" style={{ filter: 'drop-shadow(0 0 6px var(--primary-glow))' }} />
+
+                {/* Nodos de puntos brillantes */}
+                <circle cx="10" cy="140" r="5" fill="#fff" stroke="var(--primary-glow)" strokeWidth="2.5" />
+                <circle cx="90" cy="80" r="5" fill="#fff" stroke="var(--primary-glow)" strokeWidth="2.5" />
+                <circle cx="170" cy="110" r="5" fill="#fff" stroke="var(--primary-glow)" strokeWidth="2.5" />
+                <circle cx="250" cy="50" r="5" fill="#fff" stroke="var(--primary-glow)" strokeWidth="2.5" />
+                <circle cx="330" cy="90" r="5" fill="#fff" stroke="var(--primary-glow)" strokeWidth="2.5" />
+                <circle cx="410" cy="130" r="5" fill="#fff" stroke="var(--primary-glow)" strokeWidth="2.5" />
+                <circle cx="490" cy="150" r="5" fill="#fff" stroke="var(--primary-glow)" strokeWidth="2.5" />
+
+                {/* Etiquetas de días de la semana */}
+                <text x="10" y="158" fill="var(--text-color-muted)" fontSize="9" textAnchor="middle">Lun</text>
+                <text x="90" y="158" fill="var(--text-color-muted)" fontSize="9" textAnchor="middle">Mar</text>
+                <text x="170" y="158" fill="var(--text-color-muted)" fontSize="9" textAnchor="middle">Mié</text>
+                <text x="250" y="158" fill="var(--text-color-muted)" fontSize="9" textAnchor="middle">Jue</text>
+                <text x="330" y="158" fill="var(--text-color-muted)" fontSize="9" textAnchor="middle">Vie</text>
+                <text x="410" y="158" fill="var(--text-color-muted)" fontSize="9" textAnchor="middle">Sáb</text>
+                <text x="490" y="158" fill="var(--text-color-muted)" fontSize="9" textAnchor="middle">Dom</text>
+              </svg>
+            </div>
+          </div>
+
+          {/* Últimas Operaciones */}
+          <div className="glass-panel" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px', maxHeight: '250px', overflow: 'hidden' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h4 style={{ margin: 0, fontSize: '16px', color: 'var(--text-color-main)', fontWeight: 600 }}>Últimas Operaciones</h4>
+              <span style={{ fontSize: '11px', color: 'var(--text-color-muted)' }}>Logs de auditoría</span>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', overflowY: 'auto', paddingRight: '4px' }}>
+              {auditLogs.length === 0 ? (
+                <div style={{ padding: '10px', background: 'var(--bg-color-card)', border: '1px dashed var(--border-color-card)', borderRadius: '8px', fontSize: '12px', color: 'var(--text-color-muted)', textAlign: 'center' }}>
+                  No se registran logs de auditoría aún.
+                </div>
+              ) : (
+                auditLogs.slice(0, 5).map((log) => (
+                  <div key={log.id} style={{ padding: '12px', background: 'var(--bg-color-card)', border: '1px solid var(--border-color-card)', borderRadius: '8px', fontSize: '12px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-color-muted)', marginBottom: '2px' }}>
+                      <span style={{ fontWeight: 600, color: 'var(--primary-glow)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        👤 {log.usuario}
+                      </span>
+                      <span>{new Date(log.creado_en).toLocaleTimeString()}</span>
+                    </div>
+                    <span style={{ color: 'var(--text-color-main)', fontFamily: 'monospace', fontSize: '11.5px' }}>{log.accion}</span>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+
+        </div>
+      </div>
+    );
+  };
+
+  // 9. Centro de Reportes Analíticos
+  const renderReportesView = () => {
+    if (!reportesEstadisticas) return <div style={{ color: '#8f9cae', padding: '40px' }}>Cargando datos de reportes analíticos...</div>;
+
+    const {
+      distribucion_formatos,
+      distribucion_deptos,
+      ocupacion_fisica,
+      historico_actividad,
+      total_documentos,
+      total_alertas,
+      total_nodos_fisicos
+    } = reportesEstadisticas;
+
+    const handleExportReportesCSV = () => {
+      let csvContent = "data:text/csv;charset=utf-8,";
+      csvContent += "Reporte Analitico de Gestion Documental - Archi-vite\n";
+      csvContent += `Fecha: ${new Date().toLocaleString()}\n`;
+      csvContent += `Total Documentos: ${total_documentos}\n`;
+      csvContent += `Total Alertas de Retencion: ${total_alertas}\n`;
+      csvContent += `Total Ubicaciones Fisicas: ${total_nodos_fisicos}\n\n`;
+
+      csvContent += "--- DISTRIBUCION POR FORMATOS ---\nName,Count\n";
+      distribucion_formatos.forEach(item => {
+        csvContent += `${item.name},${item.value}\n`;
+      });
+
+      csvContent += "\n--- DISTRIBUCION POR DEPARTAMENTO ---\nDepartamento,Documentos Vinculados\n";
+      distribucion_deptos.forEach(item => {
+        csvContent += `"${item.name}",${item.value}\n`;
+      });
+
+      csvContent += "\n--- OCUPACION DE ARCHIVO FISICO ---\nUbicacion,Codigo,Ocupado,Capacidad,Porcentaje\n";
+      ocupacion_fisica.forEach(item => {
+        csvContent += `"${item.nombre}",${item.codigo},${item.ocupado},${item.capacidad},${item.porcentaje}%\n`;
+      });
+
+      csvContent += "\n--- HISTORICO DE EVENTOS (ULTIMOS 7 DIAS) ---\nFecha,Eventos Registrados\n";
+      historico_actividad.forEach(item => {
+        csvContent += `${item.fecha},${item.eventos}\n`;
+      });
+
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", `Reporte_Analitico_ArchiVite_${Date.now()}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      triggerNotification("Reporte CSV", "Descarga de reporte analítico iniciada.");
+    };
+
+    const handlePrintPDF = () => {
+      window.print();
+    };
+
+    return (
+      <div 
+        id="reportes-view-container" 
+        style={{ padding: '40px', display: 'flex', flexDirection: 'column', gap: '30px', overflowY: 'auto', height: '100%', boxSizing: 'border-box' }}
+      >
+        <style dangerouslySetInnerHTML={{__html: `
+          @media print {
+            body * {
+              visibility: hidden;
+            }
+            #reportes-view-container, #reportes-view-container * {
+              visibility: visible;
+            }
+            #reportes-view-container {
+              position: absolute;
+              left: 0;
+              top: 0;
+              width: 100%;
+              padding: 0px !important;
+              background: #fff !important;
+              color: #000 !important;
+            }
+            .no-print {
+              display: none !important;
+            }
+            .print-header {
+              display: flex !important;
+              flex-direction: column;
+              border-bottom: 2px solid #000;
+              padding-bottom: 12px;
+              margin-bottom: 24px;
+            }
+            .glass-panel {
+              background: none !important;
+              border: 1px solid #ddd !important;
+              box-shadow: none !important;
+              color: #000 !important;
+            }
+            h2, h3, h4, span, div {
+              color: #000 !important;
+              text-shadow: none !important;
+            }
+            .progress-fill {
+              background: #000 !important;
+              box-shadow: none !important;
+            }
+          }
+        `}} />
+
+        <div className="print-header" style={{ display: 'none', gap: '8px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <h1 style={{ margin: 0, fontSize: '26px', fontWeight: 800 }}>REPORTE ANALÍTICO DE INFRAESTRUCTURA DMS</h1>
+            <span style={{ fontSize: '13px', fontWeight: 600 }}>Proyecto de Grado - Archi-vite</span>
+          </div>
+          <span style={{ fontSize: '12px', color: '#555' }}>
+            Generado automáticamente el: {new Date().toLocaleString()} · Responsable: {username} ({userRol === 'admin' ? 'Administrador' : 'Lector'})
+          </span>
+        </div>
+
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }} className="no-print">
+          <div>
+            <h2 style={{ margin: 0, fontSize: '24px', fontWeight: 700, color: 'var(--text-color-main)' }}>Centro de Reportes Analíticos</h2>
+            <span style={{ fontSize: '13px', color: 'var(--text-color-muted)' }}>Métricas de taxonomías, ciclos de retención y auditoría activa</span>
+          </div>
+          
+          <div style={{ display: 'flex', gap: '10px' }}>
+            <button
+              onClick={handleExportReportesCSV}
+              className="glass-card"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '10px 18px',
+                borderRadius: '8px',
+                fontSize: '12.5px',
+                fontWeight: 600,
+                color: '#fff',
+                cursor: 'pointer',
+                background: 'rgba(255, 255, 255, 0.02)',
+                border: '1px solid rgba(255, 255, 255, 0.08)'
+              }}
+            >
+              <FileSpreadsheet size={15} color="#22c55e" /> Exportar CSV
+            </button>
+            <button
+              onClick={handlePrintPDF}
+              className="btn-primary"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '10px 18px',
+                borderRadius: '8px',
+                fontSize: '12.5px',
+                fontWeight: 600,
+                cursor: 'pointer'
+              }}
+            >
+              <Download size={15} /> Generar Reporte PDF
+            </button>
+          </div>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px' }}>
+          <div className="glass-panel" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            <span style={{ fontSize: '11px', color: 'var(--text-color-muted)', fontWeight: 600, textTransform: 'uppercase' }}>Total de Documentos DMS</span>
+            <h3 style={{ margin: 0, fontSize: '32px', color: 'var(--primary-glow)', fontWeight: 700 }}>{total_documentos}</h3>
+            <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.3)' }}>Hojas de cálculo, PDFs e imágenes</span>
+          </div>
+          <div className="glass-panel" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            <span style={{ fontSize: '11px', color: 'var(--text-color-muted)', fontWeight: 600, textTransform: 'uppercase' }}>Alertas de Retención Activas</span>
+            <h3 style={{ margin: 0, fontSize: '32px', color: '#ef4444', fontWeight: 700 }}>{total_alertas}</h3>
+            <span style={{ fontSize: '11px', color: '#f87171' }}>Próximos a purgar/transferir</span>
+          </div>
+          <div className="glass-panel" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            <span style={{ fontSize: '11px', color: 'var(--text-color-muted)', fontWeight: 600, textTransform: 'uppercase' }}>Ubicaciones Físicas</span>
+            <h3 style={{ margin: 0, fontSize: '32px', color: '#22c55e', fontWeight: 700 }}>{total_nodos_fisicos}</h3>
+            <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.3)' }}>Estantes, archivadores y depósitos</span>
+          </div>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px' }}>
+          
+          <div className="glass-panel" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <h4 style={{ margin: 0, fontSize: '14px', color: '#fff', fontWeight: 600 }}>Distribución por Formato de Archivo</h4>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {distribucion_formatos.length > 0 ? (
+                distribucion_formatos.map((item, idx) => {
+                  const pct = total_documentos > 0 ? (item.value / total_documentos) * 100 : 0;
+                  const colors = ['#a855f7', '#06b6d4', '#22c55e', '#eab308', '#64748b'];
+                  const color = colors[idx % colors.length];
+                  return (
+                    <div key={idx} style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
+                        <span style={{ color: '#cbd5e1', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: color }} />
+                          {item.name}
+                        </span>
+                        <span style={{ fontWeight: 600, color }}>{item.value} archivos ({pct.toFixed(0)}%)</span>
+                      </div>
+                      <div style={{ height: '8px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '4px', overflow: 'hidden' }}>
+                        <div className="progress-fill" style={{ width: `${pct}%`, height: '100%', background: color, borderRadius: '4px', boxShadow: `0 0 6px ${color}55` }} />
+                      </div>
+                    </div>
+                  );
+                })
+              ) : (
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100px', color: '#64748b', fontSize: '12px' }}>
+                  Sin archivos registrados.
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="glass-panel" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <h4 style={{ margin: 0, fontSize: '14px', color: '#fff', fontWeight: 600 }}>Volumen Documental por Área o Departamento</h4>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {distribucion_deptos.length > 0 ? (
+                distribucion_deptos.map((item, idx) => {
+                  const maxVal = Math.max(...distribucion_deptos.map(d => d.value), 1);
+                  const pct = (item.value / maxVal) * 100;
+                  return (
+                    <div key={idx} style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
+                        <span style={{ color: '#cbd5e1' }}>💼 {item.name}</span>
+                        <span style={{ fontWeight: 600, color: 'var(--primary-glow)' }}>{item.value} vínculos</span>
+                      </div>
+                      <div style={{ height: '8px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '4px', overflow: 'hidden' }}>
+                        <div className="progress-fill" style={{ width: `${pct}%`, height: '100%', background: 'linear-gradient(to right, #a855f7, #6366f1)', borderRadius: '4px', boxShadow: '0 0 6px rgba(168,85,247,0.3)' }} />
+                      </div>
+                    </div>
+                  );
+                })
+              ) : (
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100px', color: '#64748b', fontSize: '12px' }}>
+                  Sin personas vinculadas registradas.
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px' }}>
+          
+          <div className="glass-panel" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <h4 style={{ margin: 0, fontSize: '14px', color: '#fff', fontWeight: 600 }}>Ocupación de Almacenamiento Físico</h4>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              {statsData.distribucion.map((dist, idx) => (
-                <div key={idx} style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: '#cbd5e1' }}>
-                    <span>{dist.name}</span>
-                    <span style={{ fontWeight: 600, color: '#c084fc' }}>{dist.documentos} archivos</span>
-                  </div>
-                  <div style={{ height: '8px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px', overflow: 'hidden' }}>
-                    <div style={{ width: `${Math.min(100, (dist.documentos / (statsData.total_documentos || 1)) * 100)}%`, height: '100%', background: 'linear-gradient(to right, #a855f7, #6366f1)', borderRadius: '4px' }} />
-                  </div>
+              {ocupacion_fisica.length > 0 ? (
+                ocupacion_fisica.map((item, idx) => {
+                  const statusColor = item.porcentaje > 80 ? '#ef4444' : item.porcentaje > 50 ? '#eab308' : '#22c55e';
+                  return (
+                    <div key={idx} style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
+                        <span style={{ color: '#cbd5e1', fontWeight: 500 }}>📍 {item.nombre} ({item.codigo})</span>
+                        <span style={{ fontWeight: 600, color: statusColor }}>{item.ocupado}/{item.capacidad} ({item.porcentaje}%)</span>
+                      </div>
+                      <div style={{ height: '8px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '4px', overflow: 'hidden' }}>
+                        <div className="progress-fill" style={{ width: `${item.porcentaje}%`, height: '100%', background: statusColor, borderRadius: '4px', boxShadow: `0 0 6px ${statusColor}44` }} />
+                      </div>
+                    </div>
+                  );
+                })
+              ) : (
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100px', color: '#64748b', fontSize: '12px' }}>
+                  No se han registrado contenedores físicos.
                 </div>
-              ))}
+              )}
             </div>
           </div>
 
-          <div className="glass-panel" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px', maxHeight: '350px', overflow: 'hidden' }}>
-            <h4 style={{ margin: 0, fontSize: '16px', color: '#fff' }}>Últimas Operaciones</h4>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', overflowY: 'auto' }}>
-              {auditLogs.slice(0, 5).map((log) => (
-                <div key={log.id} style={{ padding: '10px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.04)', borderRadius: '8px', fontSize: '12px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', color: '#8f9cae', marginBottom: '2px' }}>
-                    <span style={{ fontWeight: 600, color: '#c084fc' }}>{log.usuario}</span>
-                    <span>{new Date(log.creado_en).toLocaleTimeString()}</span>
-                  </div>
-                  <span style={{ color: '#fff' }}>{log.accion}</span>
+          <div className="glass-panel" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <h4 style={{ margin: 0, fontSize: '14px', color: '#fff', fontWeight: 600 }}>Operaciones en los Últimos 7 Días</h4>
+            <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', height: '120px', padding: '10px 10px 0 10px', background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.03)', borderRadius: '8px' }}>
+              {historico_actividad.length > 0 ? (
+                historico_actividad.map((day, idx) => {
+                  const maxEvents = Math.max(...historico_actividad.map(d => d.eventos), 1);
+                  const heightPct = (day.eventos / maxEvents) * 90;
+                  const formattedDate = day.fecha.split('-').slice(1).join('/');
+                  return (
+                    <div key={idx} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', flex: 1, position: 'relative' }}>
+                      {day.eventos > 0 && (
+                        <span style={{ fontSize: '9px', color: '#c084fc', position: 'absolute', top: `calc(-20px - ${heightPct}%)`, fontWeight: 700 }}>
+                          {day.eventos}
+                        </span>
+                      )}
+                      <div 
+                        style={{ 
+                          width: '18px', 
+                          height: `${Math.max(4, heightPct)}%`, 
+                          background: 'linear-gradient(to top, #06b6d4, #a855f7)', 
+                          borderRadius: '3px 3px 0 0',
+                          boxShadow: '0 0 8px rgba(6, 182, 212, 0.4)',
+                          transition: 'height 0.8s cubic-bezier(0.4, 0, 0.2, 1)'
+                        }} 
+                        title={`${day.eventos} eventos registrados`}
+                      />
+                      <span style={{ fontSize: '8px', color: '#8f9cae', fontFamily: 'monospace' }}>{formattedDate}</span>
+                    </div>
+                  );
+                })
+              ) : (
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100px', color: '#64748b', fontSize: '12px', width: '100%' }}>
+                  Sin actividad registrada esta semana.
                 </div>
-              ))}
+              )}
             </div>
           </div>
-
         </div>
       </div>
     );
@@ -2610,22 +3939,24 @@ export default function App() {
             <span style={{ fontSize: '13px', color: '#8f9cae' }}>Gestión de accesos, seguridad y catálogo centralizado de personas</span>
           </div>
           
-          {activeUsuariosTab === 'directorio' && userRol === 'admin' && (
+          {userRol === 'admin' && (
             <div style={{ display: 'flex', gap: '10px' }}>
               <button 
                 onClick={() => setShowRolesConfigModal(true)} 
                 className="glass-card"
                 style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 18px', fontSize: '13px', fontWeight: 600, color: '#fff', cursor: 'pointer' }}
               >
-                <Settings size={16} color="#c084fc" /> Configurar Roles (XF)
+                <Settings size={16} color="#c084fc" /> Configurar Roles
               </button>
-              <button 
-                onClick={() => setShowCreatePersonaModal(true)} 
-                className="btn-primary"
-                style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 18px', fontSize: '13px', fontWeight: 600, borderRadius: '8px', cursor: 'pointer' }}
-              >
-                <UserPlus size={16} /> Registrar Nueva Persona
-              </button>
+              {activeUsuariosTab === 'directorio' && (
+                <button 
+                  onClick={() => setShowCreatePersonaModal(true)} 
+                  className="btn-primary"
+                  style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 18px', fontSize: '13px', fontWeight: 600, borderRadius: '8px', cursor: 'pointer' }}
+                >
+                  <UserPlus size={16} /> Registrar Nueva Persona
+                </button>
+              )}
             </div>
           )}
         </div>
@@ -2672,7 +4003,7 @@ export default function App() {
             }}
           >
             <Users size={15} color={activeUsuariosTab === 'directorio' ? '#a855f7' : '#8f9cae'} />
-            Directorio de Personas (XF)
+            Directorio de Personas
           </button>
         </div>
 
@@ -2746,7 +4077,7 @@ export default function App() {
                   <th style={{ padding: '16px 20px' }}>Identificación</th>
                   <th style={{ padding: '16px 20px' }}>Nombre Completo</th>
                   <th style={{ padding: '16px 20px' }}>Rol</th>
-                  <th style={{ padding: '16px 20px' }}>Carrera / Departamento</th>
+                  <th style={{ padding: '16px 20px' }}>Departamento / Área</th>
                   <th style={{ padding: '16px 20px', textAlign: 'right' }}>Acción</th>
                 </tr>
               </thead>
@@ -2915,7 +4246,7 @@ export default function App() {
               <span style={{ fontSize: '12px', color: '#8f9cae', fontWeight: 500 }}>Prefijo Global Fijo:</span>
               <input 
                 type="text" 
-                placeholder="Ej: UAGRM, XF, vacio..."
+                placeholder="Ej: UAGRM, AV, vacio..."
                 value={configCodificacion?.prefijo_global || ''}
                 onChange={(e) => setConfigCodificacion({...configCodificacion, prefijo_global: e.target.value})}
                 style={{ background: '#121624', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px', padding: '10px 12px', color: '#fff', fontSize: '13px', fontFamily: 'Outfit', outline: 'none' }}
@@ -3012,56 +4343,628 @@ export default function App() {
     );
   };
 
-  if (!token) {
+  const renderConfiguracionSistemaView = () => {
     return (
-      <div style={{ display: 'flex', width: '100vw', height: '100vh', alignItems: 'center', justifyContent: 'center', background: 'radial-gradient(circle at center, #1e1b4b 0%, #09090b 100%)', fontFamily: 'Outfit, sans-serif' }}>
-        <form onSubmit={handleLogin} className="glass-panel" style={{ width: '380px', padding: '40px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.08)', boxShadow: '0 20px 40px rgba(0,0,0,0.5)', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
-            <div style={{ background: 'linear-gradient(135deg, #a855f7 0%, #6366f1 100%)', width: '50px', height: '50px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 20px rgba(168,85,247,0.4)' }}>
-              <Layers size={26} color="#fff" />
+      <div style={{ padding: '40px', display: 'flex', flexDirection: 'column', gap: '24px', overflowY: 'auto', height: '100%', boxSizing: 'border-box', fontFamily: 'Outfit, sans-serif' }}>
+        <div>
+          <h2 style={{ margin: 0, fontSize: '24px', fontWeight: 700, color: '#fff' }}>Preferencias y Configuración del Sistema</h2>
+          <span style={{ fontSize: '13px', color: '#8f9cae' }}>Ajusta la paleta cromática de la organización (Branding), fuentes de lectura, copias de seguridad y reseteo del sistema.</span>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '30px', alignItems: 'start' }}>
+          {/* Panel Formulario Apariencia */}
+          <div className="glass-panel" style={{ padding: '24px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.06)', display: 'flex', flexDirection: 'column', gap: '20px', background: '#090d16' }}>
+            <h3 style={{ margin: '0 0 10px 0', fontSize: '16px', color: 'var(--primary-glow)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px' }}>
+              🎨 Apariencia y Marca (Whitelabel)
+            </h3>
+
+            {/* Tema de Colores con Puntitos Interactivos */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <span style={{ fontSize: '12px', color: '#8f9cae', fontWeight: 500 }}>Paleta Cromática (Identidad Visual):</span>
+              <div style={{ display: 'flex', gap: '14px', alignItems: 'center' }}>
+                {[
+                  { id: 'cyberpunk', name: 'Cyberpunk Violet', primary: '#a855f7', secondary: '#6366f1' },
+                  { id: 'ocean', name: 'Ocean Cyan', primary: '#06b6d4', secondary: '#3b82f6' },
+                  { id: 'emerald', name: 'Emerald Matrix', primary: '#10b981', secondary: '#14b8a6' },
+                  { id: 'amber', name: 'Amber Fire', primary: '#f59e0b', secondary: '#ef4444' }
+                ].map(paleta => (
+                  <button
+                    key={paleta.id}
+                    onClick={() => setPrefTemaColor(paleta.id)}
+                    style={{
+                      width: '32px',
+                      height: '32px',
+                      borderRadius: '50%',
+                      background: `linear-gradient(135deg, ${paleta.primary} 0%, ${paleta.secondary} 100%)`,
+                      border: prefTemaColor === paleta.id ? '2px solid #fff' : '2px solid transparent',
+                      boxShadow: prefTemaColor === paleta.id 
+                        ? `0 0 14px ${paleta.primary}` 
+                        : '0 4px 8px rgba(0,0,0,0.3)',
+                      cursor: 'pointer',
+                      transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+                      position: 'relative'
+                    }}
+                    title={paleta.name}
+                  >
+                    {prefTemaColor === paleta.id && (
+                      <span style={{
+                        position: 'absolute',
+                        top: '50%',
+                        left: '50%',
+                        transform: 'translate(-50%, -50%)',
+                        width: '8px',
+                        height: '8px',
+                        borderRadius: '50%',
+                        background: '#fff'
+                      }} />
+                    )}
+                  </button>
+                ))}
+                <span style={{ fontSize: '13px', fontWeight: 500, color: '#fff', marginLeft: '6px' }}>
+                  {prefTemaColor === 'cyberpunk' && 'Cyberpunk Violet (Por Defecto)'}
+                  {prefTemaColor === 'ocean' && 'Ocean Cyan (Corporativo)'}
+                  {prefTemaColor === 'emerald' && 'Emerald Matrix (Legal/Auditoría)'}
+                  {prefTemaColor === 'amber' && 'Amber Fire (Industrial/Operaciones)'}
+                </span>
+              </div>
             </div>
-            <h2 style={{ margin: 0, fontSize: '24px', fontWeight: 700, color: '#fff', letterSpacing: '-0.02em' }}>Archi-vite</h2>
-            <span style={{ fontSize: '12px', color: '#8f9cae' }}>Consolidador de Jerarquías · Ecosistema XF</span>
+
+
+
+            {/* Tipografía */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <span style={{ fontSize: '12px', color: '#8f9cae', fontWeight: 500 }}>Tipografía del Sistema:</span>
+              <select 
+                value={prefTipoFuente}
+                onChange={(e) => setPrefTipoFuente(e.target.value)}
+                style={{ background: '#121624', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px', padding: '10px 12px', color: '#fff', fontSize: '13px', fontFamily: 'Outfit', outline: 'none', cursor: 'pointer' }}
+              >
+                <option value="Outfit">Outfit (Moderna & Redonda - Premium)</option>
+                <option value="Inter">Inter (Muy clara - Estándar ISO/Audit)</option>
+                <option value="Fira Code">Fira Code (Monospaced - Técnico/Ingeniería)</option>
+              </select>
+            </div>
+
+            {/* Switch de Sombras / Glow */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                <span style={{ fontSize: '13px', color: '#fff', fontWeight: 500 }}>Efectos de Brillo Neón (Glow)</span>
+                <span style={{ fontSize: '11px', color: '#8f9cae' }}>Desactívalo en computadoras lentas de depósitos físicos para maximizar FPS.</span>
+              </div>
+              <input 
+                type="checkbox" 
+                checked={prefEfectosGlow}
+                onChange={(e) => setPrefEfectosGlow(e.target.checked)}
+                style={{ width: '18px', height: '18px', cursor: 'pointer', accentColor: 'var(--primary-glow)' }}
+              />
+            </div>
+
+            {/* Switch de Sonidos */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 0' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                <span style={{ fontSize: '13px', color: '#fff', fontWeight: 500 }}>Sonido Beep del Escáner QR</span>
+                <span style={{ fontSize: '11px', color: '#8f9cae' }}>Sonido acústico de confirmación al indexar o escanear archivos.</span>
+              </div>
+              <input 
+                type="checkbox" 
+                checked={prefSonidoQR}
+                onChange={(e) => setPrefSonidoQR(e.target.checked)}
+                style={{ width: '18px', height: '18px', cursor: 'pointer', accentColor: 'var(--primary-glow)' }}
+              />
+            </div>
           </div>
 
-          {loginError && (
-            <div style={{ background: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '8px', padding: '10px 14px', color: '#f87171', fontSize: '12px', textAlign: 'center' }}>
-              ⚠️ {loginError}
+          {/* Panel Previsualización / Whitelabel */}
+          <div className="glass-panel" style={{ padding: '24px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.06)', display: 'flex', flexDirection: 'column', gap: '16px', background: 'rgba(255,255,255,0.01)' }}>
+            <h3 style={{ margin: 0, fontSize: '16px', color: '#fff', fontWeight: 600 }}>👁️ Previsualización de Marca</h3>
+            <span style={{ fontSize: '12px', color: '#8f9cae' }}>Así lucirán las ventanas de alertas, botones primarios e identificadores en tu tema actual:</span>
+
+            {/* Caja de previsualización */}
+            <div style={{ background: '#0a0d17', border: '1.5px solid var(--primary-glow)', boxShadow: '0 0 15px var(--glow-shadow-intensity)', padding: '20px', borderRadius: '12px', display: 'flex', flexDirection: 'column', gap: '12px', transition: 'all 0.3s ease' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: '13px', fontWeight: 600, color: '#fff' }}>Estante Físico de Pruebas</span>
+                <span style={{ background: 'var(--primary-glow-bg)', border: '1px solid var(--primary-glow)', color: '#fff', fontSize: '9px', fontWeight: 700, padding: '2px 8px', borderRadius: '50px' }}>EST-PREV</span>
+              </div>
+              <span style={{ fontSize: '11px', color: '#8f9cae' }}>Código QR asociado y verificado con éxito en el servidor de base de datos.</span>
+              <button className="btn-primary" style={{ padding: '8px 16px', borderRadius: '6px', fontSize: '12px', width: 'fit-content', border: 'none', cursor: 'pointer' }}>
+                Botón de Acción Primaria
+              </button>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              <span style={{ fontSize: '11px', color: '#64748b', fontWeight: 600, textTransform: 'uppercase' }}>Ejemplo de Fuente:</span>
+              <span style={{ fontSize: '13px', color: '#fff', fontFamily: 'var(--font-family-system)', fontStyle: 'italic' }}>
+                "El DMS híbrido Archi-vite asegura la consistencia física y lógica mediante adyacencia recursiva."
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Panel de Copias de Seguridad (Backups) */}
+        <div className="glass-panel" style={{ padding: '24px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.06)', display: 'flex', flexDirection: 'column', gap: '20px', background: '#090d16', marginTop: '10px' }}>
+          <h3 style={{ margin: 0, fontSize: '16px', color: 'var(--primary-glow)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px' }}>
+            💾 Gestión de Copias de Seguridad (Backups)
+          </h3>
+          <p style={{ margin: 0, fontSize: '13px', color: '#9ca3af', lineHeight: '1.6' }}>
+            Respalda toda la estructura lógica/física del DMS, catálogo de personas, logs e información de retenciones.
+          </p>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap', borderBottom: '1px solid rgba(255,255,255,0.04)', paddingBottom: '20px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', width: '220px' }}>
+              <span style={{ fontSize: '11px', color: '#8f9cae', fontWeight: 600 }}>Tipo de Copia de Seguridad:</span>
+              <select
+                value={backupTipo}
+                onChange={(e) => setBackupTipo(e.target.value)}
+                style={{ background: '#121624', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px', padding: '10px 12px', color: '#fff', fontSize: '13px', fontFamily: 'Outfit', outline: 'none', cursor: 'pointer' }}
+              >
+                <option value="total">Copia Total (BD + PDFs en ZIP)</option>
+                <option value="metadatos">Metadatos (Solo BD en JSON)</option>
+              </select>
+            </div>
+            <button
+              onClick={handleCrearBackup}
+              disabled={isCreatingBackup}
+              className="btn-primary"
+              style={{
+                padding: '12px 24px',
+                fontSize: '13px',
+                fontWeight: 700,
+                borderRadius: '8px',
+                border: 'none',
+                cursor: isCreatingBackup ? 'not-allowed' : 'pointer',
+                marginTop: '15px'
+              }}
+            >
+              {isCreatingBackup ? 'Generando Copia...' : 'Generar Copia de Seguridad'}
+            </button>
+          </div>
+
+          {/* Tabla de Backups Disponibles */}
+          <div>
+            <h4 style={{ margin: '0 0 10px 0', fontSize: '14px', color: '#fff', fontWeight: 600 }}>Copias de Seguridad Disponibles en el Servidor</h4>
+            {backups.length === 0 ? (
+              <div style={{ padding: '20px', textAlign: 'center', background: 'rgba(255,255,255,0.02)', borderRadius: '8px', border: '1px dashed rgba(255,255,255,0.08)', color: '#64748b', fontSize: '13px' }}>
+                No se han generado copias de seguridad aún.
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '250px', overflowY: 'auto', paddingRight: '4px' }}>
+                {backups.map((b) => (
+                  <div key={b.filename} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '8px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                      <span style={{ fontSize: '13px', color: '#fff', fontFamily: 'monospace', fontWeight: 600 }}>{b.filename}</span>
+                      <span style={{ fontSize: '11px', color: '#8f9cae' }}>
+                        Tipo: <strong style={{ color: b.tipo === 'total' ? '#c084fc' : '#38bdf8' }}>{b.tipo.toUpperCase()}</strong> · Tamaño: {(b.size / 1024 / 1024).toFixed(2)} MB · Creado el: {new Date(b.fecha).toLocaleString()}
+                      </span>
+                    </div>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <a
+                        href={`${API_BASE_URL}/sistema/backup/descargar/${b.filename}`}
+                        download
+                        className="btn-primary"
+                        style={{ padding: '6px 12px', fontSize: '11px', borderRadius: '6px', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 600 }}
+                      >
+                        Descargar
+                      </a>
+                      <button
+                        onClick={() => handleEliminarBackup(b.filename)}
+                        style={{ padding: '6px 12px', fontSize: '11px', borderRadius: '6px', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', color: '#f87171', cursor: 'pointer', fontWeight: 600 }}
+                        className="hover-scale"
+                      >
+                        Eliminar
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Panel de Gestión del Despliegue del Árbol (Persistencia) */}
+        {(() => {
+          let guardados = [];
+          try {
+            guardados = JSON.parse(localStorage.getItem(`pref_arbol_expandidos_guardados_${tipoJerarquia}`) || '[]');
+          } catch(e) {}
+
+          return (
+            <div className="glass-panel" style={{ padding: '24px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.06)', display: 'flex', flexDirection: 'column', gap: '20px', background: '#090d16', marginTop: '10px' }}>
+              <h3 style={{ margin: 0, fontSize: '16px', color: 'var(--primary-glow)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                🌳 Estructura de Despliegue del Árbol Jerárquico
+              </h3>
+              <p style={{ margin: 0, fontSize: '13px', color: '#9ca3af', lineHeight: '1.6' }}>
+                Administra las ramas y subcategorías que se mantendrán expandidas automáticamente cada vez que ingreses al módulo DMS.
+              </p>
+
+              {guardados.length === 0 ? (
+                <div style={{ padding: '20px', textAlign: 'center', background: 'rgba(255,255,255,0.02)', borderRadius: '8px', border: '1px dashed rgba(255,255,255,0.08)', color: '#64748b', fontSize: '13px' }}>
+                  No tienes ninguna rama guardada. Por defecto, solo se expandirán las ramas principales.
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontSize: '12px', color: '#8f9cae', fontWeight: 600 }}>Ramas Auto-Expandibles Guardadas ({guardados.length}):</span>
+                    <button
+                      onClick={() => {
+                        localStorage.removeItem(`pref_arbol_expandidos_guardados_${tipoJerarquia}`);
+                        localStorage.removeItem(`pref_arbol_expandidos_${tipoJerarquia}`);
+                        triggerNotification("Despliegue Reestablecido", "Se limpiaron todos los nodos guardados.");
+                        fetchTreeData();
+                      }}
+                      style={{
+                        background: 'rgba(239, 68, 68, 0.1)',
+                        border: '1px solid rgba(239, 68, 68, 0.2)',
+                        color: '#f87171',
+                        padding: '6px 12px',
+                        borderRadius: '6px',
+                        fontSize: '11px',
+                        fontWeight: 600,
+                        cursor: 'pointer'
+                      }}
+                      className="hover-scale"
+                    >
+                      Limpiar Todo
+                    </button>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '10px', maxHeight: '180px', overflowY: 'auto', paddingRight: '4px' }}>
+                    {guardados.map((item) => (
+                      <div
+                        key={item.id}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          background: 'rgba(255,255,255,0.02)',
+                          border: '1px solid rgba(255,255,255,0.05)',
+                          borderRadius: '6px',
+                          padding: '8px 10px'
+                        }}
+                      >
+                        <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden', marginRight: '8px' }}>
+                          <span style={{ fontSize: '12px', color: '#fff', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={item.nombre}>
+                            {item.nombre}
+                          </span>
+                          <span style={{ fontSize: '9px', color: item.tipo === 'Física' ? '#22c55e' : '#a855f7', fontWeight: 700 }}>
+                            {item.tipo.toUpperCase()}
+                          </span>
+                        </div>
+                        <button
+                          onClick={() => {
+                            const filtrado = guardados.filter(x => x.id !== item.id);
+                            localStorage.setItem(`pref_arbol_expandidos_guardados_${tipoJerarquia}`, JSON.stringify(filtrado));
+                            const ids = filtrado.map(x => x.id);
+                            localStorage.setItem(`pref_arbol_expandidos_${tipoJerarquia}`, JSON.stringify(ids));
+                            triggerNotification("Elemento Removido", `Se removió '${item.nombre}' de la vista guardada.`);
+                            fetchTreeData();
+                          }}
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            cursor: 'pointer',
+                            color: '#8f9cae',
+                            fontSize: '14px',
+                            padding: '2px 6px',
+                            display: 'flex',
+                            alignItems: 'center'
+                          }}
+                          className="hover-scale"
+                          title="Eliminar del despliegue automático"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })()}
+
+        {/* Zona de Peligro: Restablecer Sistema de forma completa */}
+        <div className="glass-panel" style={{ padding: '24px', borderRadius: '12px', border: '1px solid rgba(239,68,68,0.2)', background: 'rgba(239,68,68,0.02)', display: 'flex', flexDirection: 'column', gap: '14px', marginTop: '10px' }}>
+          <h3 style={{ margin: 0, fontSize: '16px', color: '#ef4444', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px' }}>
+            ⚠️ Zona de Peligro: Restablecer Todo el Sistema
+          </h3>
+          <p style={{ margin: 0, fontSize: '13px', color: '#9ca3af', lineHeight: '1.6' }}>
+            Esta acción eliminará de forma permanente **todos** los nodos jerárquicos (lógicos y físicos), documentos cargados en el DMS, catálogo de roles de la organización, directorio de personas con sus firmas vinculadas, transiciones y estados de la FSM, y registros del log de auditoría. El usuario administrador global <strong>'admin'</strong> no será eliminado.
+          </p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap', marginTop: '4px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1, minWidth: '280px' }}>
+              <span style={{ fontSize: '11px', color: '#f87171', fontWeight: 600 }}>Escribe "INICIALIZAR-SISTEMA" para confirmar:</span>
+              <input 
+                type="text" 
+                placeholder="INICIALIZAR-SISTEMA"
+                value={resetConfirmText}
+                onChange={(e) => setResetConfirmText(e.target.value)}
+                style={{ background: '#120d16', border: '1px solid rgba(239,68,68,0.25)', borderRadius: '8px', padding: '10px 14px', color: '#fff', fontSize: '13px', fontFamily: 'monospace', outline: 'none' }}
+              />
+            </div>
+            <button
+              onClick={() => setShowResetConfirmModal(true)}
+              disabled={resetConfirmText !== 'INICIALIZAR-SISTEMA' || isResetting}
+              style={{
+                background: resetConfirmText === 'INICIALIZAR-SISTEMA' ? 'linear-gradient(135deg, #ef4444 0%, #b91c1c 100%)' : '#27171c',
+                border: 'none',
+                color: resetConfirmText === 'INICIALIZAR-SISTEMA' ? '#fff' : '#6b7280',
+                borderRadius: '8px',
+                padding: '12px 24px',
+                fontSize: '13px',
+                fontWeight: 700,
+                cursor: resetConfirmText === 'INICIALIZAR-SISTEMA' ? 'pointer' : 'not-allowed',
+                boxShadow: resetConfirmText === 'INICIALIZAR-SISTEMA' ? '0 0 15px rgba(239, 68, 68, 0.45)' : 'none',
+                transition: 'all 0.25s ease',
+                marginTop: '15px'
+              }}
+              className={resetConfirmText === 'INICIALIZAR-SISTEMA' ? 'hover-scale' : ''}
+            >
+              {isResetting ? 'Restableciendo...' : 'Restablecer y Vaciar Todo'}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const renderAlertasRetencionView = () => {
+    return (
+      <div style={{ padding: '40px', display: 'flex', flexDirection: 'column', gap: '24px', overflowY: 'auto', height: '100%', boxSizing: 'border-box', fontFamily: 'Outfit, sans-serif' }}>
+        <div>
+          <h2 style={{ margin: 0, fontSize: '24px', fontWeight: 700, color: '#fff' }}>Alertas de Retención y Transferencias Físicas</h2>
+          <span style={{ fontSize: '13px', color: '#8f9cae' }}>Gestiona los expedientes físicos cuyo plazo de retención en cajas locales ha expirado y requieren transferencia.</span>
+        </div>
+
+        <div className="glass-panel" style={{ padding: '24px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.06)', display: 'flex', flexDirection: 'column', gap: '16px', background: '#090d16' }}>
+          <h3 style={{ margin: 0, fontSize: '16px', color: '#ef4444', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px' }}>
+            🚨 Archivos Físicos Expirados
+          </h3>
+          <p style={{ margin: 0, fontSize: '13px', color: '#9ca3af', lineHeight: '1.6' }}>
+            Los siguientes documentos han superado el límite de meses configurado para su permanencia en su caja/estante actual. Deben ser trasladados al almacén o ubicación de destino establecida.
+          </p>
+
+          {alertasRetencion.length === 0 ? (
+            <div style={{ padding: '40px 20px', textAlign: 'center', background: 'rgba(255,255,255,0.02)', borderRadius: '8px', border: '1px dashed rgba(255,255,255,0.08)', color: '#64748b', fontSize: '13px' }}>
+              🎉 ¡No hay alertas de retención activas! Todos los archivos físicos se encuentran dentro de su período de retención válido.
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {alertasRetencion.map((alerta) => {
+                const limite = alerta.fecha_limite_retencion ? new Date(alerta.fecha_limite_retencion).toLocaleDateString() : 'N/A';
+                let diasVencidos = 0;
+                if (alerta.fecha_limite_retencion) {
+                  const diff = Date.now() - new Date(alerta.fecha_limite_retencion).getTime();
+                  diasVencidos = Math.max(0, Math.floor(diff / (1000 * 60 * 60 * 24)));
+                }
+
+                // Destino dinámico basado en la estructura
+                const destinoObj = alerta.ubicacion_fisica?.nodo_destino_transferencia_id 
+                  ? getDestinosElegibles(treeData, true).find(d => d.id === alerta.ubicacion_fisica.nodo_destino_transferencia_id)
+                  : null;
+
+                return (
+                  <div key={alerta.id} className="glass-card" style={{ display: 'flex', flexDirection: 'column', gap: '12px', padding: '16px', border: '1.5px solid rgba(239, 68, 68, 0.25)', boxShadow: '0 0 10px rgba(239, 68, 68, 0.08)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '10px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <div style={{ background: 'rgba(239, 68, 68, 0.1)', width: '32px', height: '32px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <AlertTriangle size={16} color="#ef4444" />
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column' }}>
+                          <span style={{ fontSize: '14px', fontWeight: 600, color: '#fff' }}>{alerta.nombre_archivo}</span>
+                          <span style={{ fontSize: '11px', color: '#8f9cae' }}>ID DMS: {alerta.identificador_dms} · Versión: {alerta.version}</span>
+                        </div>
+                      </div>
+                      <span style={{ background: 'rgba(239, 68, 68, 0.15)', border: '1px solid #ef4444', color: '#f87171', fontSize: '10px', fontWeight: 700, padding: '3px 10px', borderRadius: '50px' }}>
+                        VENCIDO HACE {diasVencidos} DÍAS
+                      </span>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px', background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.03)', padding: '12px', borderRadius: '8px' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                        <span style={{ fontSize: '10px', color: '#8f9cae', fontWeight: 600, textTransform: 'uppercase' }}>📍 Ubicación de Origen (Expirada)</span>
+                        <span style={{ fontSize: '12px', color: '#fff', fontWeight: 500 }}>{alerta.ubicacion_fisica?.nombre || 'Desconocida'}</span>
+                        <span style={{ fontSize: '10px', color: '#22c55e', fontFamily: 'monospace' }}>{alerta.ubicacion_fisica?.codigo_inteligente}</span>
+                      </div>
+                      
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                        <span style={{ fontSize: '10px', color: '#8f9cae', fontWeight: 600, textTransform: 'uppercase' }}>🏢 Destino de Transferencia</span>
+                        <span style={{ fontSize: '12px', color: '#fff', fontWeight: 500 }}>
+                          {destinoObj ? destinoObj.nombre : 'Archivo Central Corporativo'}
+                        </span>
+                        <span style={{ fontSize: '10px', color: '#c084fc', fontFamily: 'monospace' }}>
+                          {destinoObj ? destinoObj.codigo : 'AVACC-001'}
+                        </span>
+                      </div>
+
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                        <span style={{ fontSize: '10px', color: '#8f9cae', fontWeight: 600, textTransform: 'uppercase' }}>📅 Fecha Límite de Retención</span>
+                        <span style={{ fontSize: '12px', color: '#fff', fontWeight: 500 }}>{limite}</span>
+                        <span style={{ fontSize: '10px', color: '#cbd5e1' }}>Regla: {alerta.ubicacion_fisica?.meses_retencion_limite || 12} meses límite</span>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '4px' }}>
+                      <button 
+                        onClick={() => {
+                          setPreviewFileName(alerta.nombre_archivo);
+                          setPreviewFileUrl(`${API_BASE_URL}${alerta.ruta_archivo}`);
+                          const ext = alerta.nombre_archivo.split('.').pop().toLowerCase();
+                          if (ext === 'pdf') setPreviewFileType('pdf');
+                          else if (['png','jpg','jpeg','gif'].includes(ext)) setPreviewFileType('image');
+                          else setPreviewFileType('generic');
+                          setShowPreviewModal(true);
+                        }}
+                        className="glass-card"
+                        style={{ padding: '8px 16px', fontSize: '12px', fontWeight: 600, color: '#fff', borderRadius: '6px', cursor: 'pointer' }}
+                      >
+                        👁️ Ver Archivo
+                      </button>
+                      <button 
+                        onClick={() => handleTransferirDocumentoFisico(alerta.id)}
+                        className="btn-primary"
+                        style={{ 
+                          padding: '8px 18px', 
+                          fontSize: '12px', 
+                          fontWeight: 700, 
+                          color: '#fff', 
+                          borderRadius: '6px', 
+                          cursor: 'pointer',
+                          background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
+                          border: 'none',
+                          boxShadow: '0 0 10px rgba(239, 68, 68, 0.3)'
+                        }}
+                      >
+                        🔄 Transferir Físicamente
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           )}
+        </div>
+      </div>
+    );
+  };
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            <label style={{ fontSize: '13px', color: '#8f9cae', fontWeight: 500 }}>Usuario</label>
-            <input 
-              type="text" 
-              required
-              placeholder="admin o lector"
-              value={loginUser}
-              onChange={(e) => setLoginUser(e.target.value)}
-              style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px', padding: '12px 14px', color: '#fff', fontSize: '13px', outline: 'none', fontFamily: 'Outfit' }}
-            />
-          </div>
+  if (!token) {
+    return (
+      <div style={{ 
+        display: 'flex', 
+        width: '100vw', 
+        height: '100vh', 
+        alignItems: 'center', 
+        justifyContent: 'center', 
+        background: 'linear-gradient(135deg, rgba(8, 10, 15, 0.88) 0%, rgba(9, 9, 11, 0.95) 100%), url(/login_bg.png) no-repeat center center / cover',
+        fontFamily: 'Outfit, sans-serif',
+        position: 'relative'
+      }}>
+        {showChangePasswordPanel ? (
+          <form onSubmit={handleChangePasswordSubmit} className="glass-panel" style={{ width: '380px', padding: '40px', borderRadius: '16px', border: '1px solid rgba(168, 85, 247, 0.25)', boxShadow: '0 0 30px rgba(168, 85, 247, 0.15)', display: 'flex', flexDirection: 'column', gap: '20px', zIndex: 10 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
+              <div style={{ background: 'rgba(168, 85, 247, 0.1)', width: '56px', height: '56px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid rgba(168,85,247,0.2)', boxShadow: '0 0 15px rgba(168, 85, 247, 0.3)' }}>
+                <Key size={28} color="#c084fc" />
+              </div>
+              <h2 style={{ margin: '6px 0 0 0', fontSize: '22px', fontWeight: 700, color: '#fff', letterSpacing: '-0.02em', textAlign: 'center' }}>Primer Ingreso</h2>
+              <span style={{ fontSize: '12px', color: '#a855f7', fontWeight: 600 }}>Cambio de Contraseña Obligatorio</span>
+            </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            <label style={{ fontSize: '13px', color: '#8f9cae', fontWeight: 500 }}>Contraseña</label>
-            <input 
-              type="password" 
-              required
-              placeholder="••••••••"
-              value={loginPass}
-              onChange={(e) => setLoginPass(e.target.value)}
-              style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px', padding: '12px 14px', color: '#fff', fontSize: '13px', outline: 'none', fontFamily: 'Outfit' }}
-            />
-          </div>
+            <p style={{ margin: 0, fontSize: '12px', color: '#8f9cae', lineHeight: 1.5, textAlign: 'center' }}>
+              Por motivos de seguridad y política del sistema <strong>Archi-vite</strong>, debe actualizar su contraseña inicial (identificación) antes de acceder al DMS.
+            </p>
 
-          <button 
-            type="submit" 
-            className="btn-primary"
-            style={{ padding: '14px', borderRadius: '8px', fontSize: '14px', fontWeight: 600, cursor: 'pointer', marginTop: '10px' }}
-          >
-            Iniciar Sesión
-          </button>
-        </form>
+            {changePasswordError && (
+              <div style={{ background: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '8px', padding: '10px 14px', color: '#f87171', fontSize: '12px', textAlign: 'center' }}>
+                ⚠️ {changePasswordError}
+              </div>
+            )}
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <label style={{ fontSize: '13px', color: '#8f9cae', fontWeight: 500 }}>Nueva Contraseña</label>
+              <input 
+                type="password" 
+                required
+                placeholder="Mínimo 4 caracteres"
+                value={newPasswordVal}
+                onChange={(e) => setNewPasswordVal(e.target.value)}
+                style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px', padding: '12px 14px', color: '#fff', fontSize: '13px', outline: 'none', fontFamily: 'Outfit' }}
+              />
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <label style={{ fontSize: '13px', color: '#8f9cae', fontWeight: 500 }}>Confirmar Contraseña</label>
+              <input 
+                type="password" 
+                required
+                placeholder="Repita la nueva contraseña"
+                value={confirmPasswordVal}
+                onChange={(e) => setConfirmPasswordVal(e.target.value)}
+                style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px', padding: '12px 14px', color: '#fff', fontSize: '13px', outline: 'none', fontFamily: 'Outfit' }}
+              />
+            </div>
+
+            <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+              <button 
+                type="button" 
+                onClick={() => {
+                  setShowChangePasswordPanel(false);
+                  setTempTokenData(null);
+                  setNewPasswordVal('');
+                  setConfirmPasswordVal('');
+                  setChangePasswordError('');
+                }}
+                className="glass-card"
+                style={{ flex: 1, padding: '14px', color: '#fff', borderRadius: '8px', fontSize: '13px', cursor: 'pointer' }}
+              >
+                Cancelar
+              </button>
+              <button 
+                type="submit" 
+                className="btn-primary"
+                style={{ flex: 1, padding: '14px', borderRadius: '8px', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}
+              >
+                Actualizar
+              </button>
+            </div>
+          </form>
+        ) : (
+          <form onSubmit={handleLogin} className="glass-panel" style={{ width: '380px', padding: '40px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.08)', boxShadow: '0 20px 40px rgba(0,0,0,0.5)', display: 'flex', flexDirection: 'column', gap: '20px', zIndex: 10 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
+              <img 
+                src="/logo.png" 
+                style={{ 
+                  width: '56px', 
+                  height: '56px', 
+                  borderRadius: '12px', 
+                  objectFit: 'cover', 
+                  boxShadow: '0 0 15px var(--primary-glow)',
+                  border: '1px solid rgba(255,255,255,0.1)' 
+                }} 
+                alt="Archi-vite Logo" 
+              />
+              <h2 style={{ margin: '6px 0 0 0', fontSize: '24px', fontWeight: 700, color: '#fff', letterSpacing: '-0.02em' }}>Archi-vite</h2>
+              <span style={{ fontSize: '12px', color: '#8f9cae' }}>Consolidador de Jerarquías de Archivos</span>
+            </div>
+
+            {loginError && (
+              <div style={{ background: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '8px', padding: '10px 14px', color: '#f87171', fontSize: '12px', textAlign: 'center' }}>
+                ⚠️ {loginError}
+              </div>
+            )}
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <label style={{ fontSize: '13px', color: '#8f9cae', fontWeight: 500 }}>Usuario</label>
+              <input 
+                type="text" 
+                required
+                placeholder="admin o lector"
+                value={loginUser}
+                onChange={(e) => setLoginUser(e.target.value)}
+                style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px', padding: '12px 14px', color: '#fff', fontSize: '13px', outline: 'none', fontFamily: 'Outfit' }}
+              />
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <label style={{ fontSize: '13px', color: '#8f9cae', fontWeight: 500 }}>Contraseña</label>
+              <input 
+                type="password" 
+                required
+                placeholder="••••••••"
+                value={loginPass}
+                onChange={(e) => setLoginPass(e.target.value)}
+                style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px', padding: '12px 14px', color: '#fff', fontSize: '13px', outline: 'none', fontFamily: 'Outfit' }}
+              />
+            </div>
+
+            <button 
+              type="submit" 
+              className="btn-primary"
+              style={{ padding: '14px', borderRadius: '8px', fontSize: '14px', fontWeight: 600, cursor: 'pointer', marginTop: '10px' }}
+            >
+              Iniciar Sesión
+            </button>
+          </form>
+        )}
       </div>
     );
   }
@@ -3073,7 +4976,7 @@ export default function App() {
       {isLoading && (
         <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(9,9,11,0.7)', backdropFilter: 'blur(4px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '16px', zIndex: 9999 }}>
           <Activity size={40} className="pulse-glow" color="#a855f7" />
-          <span style={{ color: '#fff', fontSize: '14px', fontWeight: 500 }}>Procesando y registrando documentos en DMS...</span>
+          <span style={{ color: '#fff', fontSize: '14px', fontWeight: 500 }}>Conectando y sincronizando con el servidor DMS...</span>
         </div>
       )}
 
@@ -3145,12 +5048,21 @@ export default function App() {
       >
         {/* Header Logo */}
         <div style={{ padding: '24px', display: 'flex', alignItems: 'center', gap: '12px', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-          <div style={{ background: 'linear-gradient(135deg, #a855f7 0%, #6366f1 100%)', width: '42px', height: '42px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 15px rgba(168,85,247,0.4)' }}>
-            <Layers size={22} color="#fff" />
-          </div>
+          <img 
+            src="/logo.png" 
+            style={{ 
+              width: '42px', 
+              height: '42px', 
+              borderRadius: '12px', 
+              objectFit: 'cover', 
+              boxShadow: '0 0 10px var(--primary-glow)',
+              border: '1px solid rgba(255,255,255,0.1)' 
+            }} 
+            alt="Logo" 
+          />
           <div>
             <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 700, background: 'linear-gradient(to right, #ffffff, #c084fc)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', letterSpacing: '-0.02em' }}>Archi-vite</h1>
-            <span style={{ fontSize: '11px', color: '#8f9cae', fontWeight: 500 }}>Ecosistema XF</span>
+            <span style={{ fontSize: '11px', color: '#8f9cae', fontWeight: 500 }}>Gestor de Archivos DMS</span>
           </div>
         </div>
 
@@ -3285,7 +5197,10 @@ export default function App() {
           </div>
 
           <div 
-            onClick={() => setActiveMenu('jerarquias')} 
+            onClick={() => {
+              setActiveMenu('jerarquias');
+              setActiveView('grafico');
+            }} 
             className="hover-scale" 
             style={{ 
               display: 'flex', 
@@ -3300,7 +5215,30 @@ export default function App() {
             }}
           >
             <Folder size={15} color={activeMenu === 'jerarquias' ? '#c084fc' : '#8f9cae'} />
-            <span style={{ fontSize: '13px', fontWeight: activeMenu === 'jerarquias' ? 600 : 500 }}>Jerarquías DMS</span>
+            <span style={{ fontSize: '13px', fontWeight: activeMenu === 'jerarquias' ? 600 : 500 }}>Árbol Gráfico</span>
+          </div>
+
+          <div 
+            onClick={() => {
+              setActiveMenu('consola_tree');
+              setActiveView('linux');
+            }} 
+            className="hover-scale" 
+            style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '12px', 
+              padding: '10px 14px', 
+              borderRadius: '8px', 
+              cursor: 'pointer', 
+              color: activeMenu === 'consola_tree' ? '#fff' : '#cbd5e1', 
+              background: activeMenu === 'consola_tree' ? 'rgba(168, 85, 247, 0.15)' : 'rgba(255,255,255,0.01)', 
+              border: activeMenu === 'consola_tree' ? '1px solid rgba(168, 85, 247, 0.3)' : '1px solid rgba(255,255,255,0.03)',
+              marginTop: '4px'
+            }}
+          >
+            <FileCode size={15} color={activeMenu === 'consola_tree' ? '#c084fc' : '#8f9cae'} />
+            <span style={{ fontSize: '13px', fontWeight: activeMenu === 'consola_tree' ? 600 : 500 }}>Explorador de Consola</span>
           </div>
 
           <div 
@@ -3320,6 +5258,61 @@ export default function App() {
           >
             <Sliders size={15} color={activeMenu === 'workflow' ? '#c084fc' : '#8f9cae'} />
             <span style={{ fontSize: '13px', fontWeight: activeMenu === 'workflow' ? 600 : 500 }}>Flujo de Trabajo</span>
+          </div>
+
+          <div 
+            onClick={() => setActiveMenu('alertas')} 
+            className="hover-scale" 
+            style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'space-between',
+              padding: '10px 14px', 
+              borderRadius: '8px', 
+              cursor: 'pointer', 
+              color: activeMenu === 'alertas' ? '#fff' : '#cbd5e1', 
+              background: activeMenu === 'alertas' ? 'rgba(239, 68, 68, 0.15)' : 'rgba(255,255,255,0.01)', 
+              border: activeMenu === 'alertas' ? '1px solid rgba(239, 68, 68, 0.3)' : '1px solid rgba(255,255,255,0.03)',
+              marginTop: '4px'
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <AlertTriangle size={15} color={activeMenu === 'alertas' ? '#ef4444' : '#8f9cae'} />
+              <span style={{ fontSize: '13px', fontWeight: activeMenu === 'alertas' ? 600 : 500 }}>Alertas de Retención</span>
+            </div>
+            {alertasRetencion.length > 0 && (
+              <span style={{ 
+                background: '#ef4444', 
+                color: '#fff', 
+                fontSize: '9px', 
+                fontWeight: 700, 
+                padding: '2px 6px', 
+                borderRadius: '50px',
+                boxShadow: '0 0 8px #ef4444aa'
+              }}>
+                {alertasRetencion.length}
+              </span>
+            )}
+          </div>
+
+          <div 
+            onClick={() => setActiveMenu('reportes')} 
+            className="hover-scale" 
+            style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '12px', 
+              padding: '10px 14px', 
+              borderRadius: '8px', 
+              cursor: 'pointer', 
+              color: activeMenu === 'reportes' ? '#fff' : '#cbd5e1', 
+              background: activeMenu === 'reportes' ? 'rgba(168, 85, 247, 0.15)' : 'rgba(255,255,255,0.01)', 
+              border: activeMenu === 'reportes' ? '1px solid rgba(168, 85, 247, 0.3)' : '1px solid rgba(255,255,255,0.03)',
+              marginTop: '4px'
+            }}
+          >
+            <FileSpreadsheet size={15} color={activeMenu === 'reportes' ? '#c084fc' : '#8f9cae'} />
+            <span style={{ fontSize: '13px', fontWeight: activeMenu === 'reportes' ? 600 : 500 }}>Centro de Reportes</span>
           </div>
 
           {userRol === 'admin' && (
@@ -3381,6 +5374,26 @@ export default function App() {
                 <Cpu size={15} color={activeMenu === 'codificacion' ? '#c084fc' : '#8f9cae'} />
                 <span style={{ fontSize: '13px', fontWeight: activeMenu === 'codificacion' ? 600 : 500 }}>Config. Codificación</span>
               </div>
+
+              <div 
+                onClick={() => setActiveMenu('configuracion')} 
+                className="hover-scale"
+                style={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: '12px', 
+                  padding: '10px 14px', 
+                  borderRadius: '8px', 
+                  cursor: 'pointer', 
+                  color: activeMenu === 'configuracion' ? '#fff' : '#cbd5e1', 
+                  background: activeMenu === 'configuracion' ? 'rgba(168, 85, 247, 0.15)' : 'rgba(255,255,255,0.01)', 
+                  border: activeMenu === 'configuracion' ? '1px solid rgba(168, 85, 247, 0.3)' : '1px solid rgba(255,255,255,0.03)',
+                  marginTop: '4px'
+                }}
+              >
+                <Settings size={15} color={activeMenu === 'configuracion' ? '#c084fc' : '#8f9cae'} />
+                <span style={{ fontSize: '13px', fontWeight: activeMenu === 'configuracion' ? 600 : 500 }}>Preferencias</span>
+              </div>
             </>
           )}
         </div>
@@ -3418,167 +5431,256 @@ export default function App() {
         
         {/* Renderizado Dinámico de Vistas en el Canvas Central */}
         
-        {/* A. Vista Jerarquías */}
-        {activeMenu === 'jerarquias' && (
-          <>
-            <header style={{ height: '80px', padding: '0 30px 0 60px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.06)', background: 'rgba(10,14,23,0.3)', backdropFilter: 'blur(12px)' }}>
-              <div>
-                <h2 style={{ margin: 0, fontSize: '18px', fontWeight: 600, color: '#fff' }}>Área de Trabajo Jerárquica</h2>
-                <p style={{ margin: 0, fontSize: '12px', color: '#8f9cae' }}>Visualiza y despliega la estructura organizacional del DMS.</p>
-              </div>
-              
-              <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                <div style={{ display: 'flex', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '8px', padding: '3px' }}>
-                  <button 
-                    onClick={() => {
-                      setTipoJerarquia('logico');
-                      fetchTreeData('logico');
-                    }}
-                    style={{
-                      background: tipoJerarquia === 'logico' ? 'rgba(168, 85, 247, 0.2)' : 'none',
-                      border: 'none',
-                      color: tipoJerarquia === 'logico' ? '#c084fc' : '#8f9cae',
-                      padding: '6px 12px',
-                      borderRadius: '6px',
-                      fontSize: '12px',
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                      transition: 'all 0.2s ease'
-                    }}
-                  >
-                    📂 Estructura Lógica
-                  </button>
-                  <button 
-                    onClick={() => {
-                      setTipoJerarquia('fisico');
-                      fetchTreeData('fisico');
-                    }}
-                    style={{
-                      background: tipoJerarquia === 'fisico' ? 'rgba(34, 197, 94, 0.2)' : 'none',
-                      border: 'none',
-                      color: tipoJerarquia === 'fisico' ? '#22c55e' : '#8f9cae',
-                      padding: '6px 12px',
-                      borderRadius: '6px',
-                      fontSize: '12px',
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                      transition: 'all 0.2s ease'
-                    }}
-                  >
-                    📍 Estructura Física
-                  </button>
-                </div>
-
-                <div style={{ display: 'flex', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '8px', padding: '3px' }}>
-                  <button 
-                    onClick={() => setActiveView('grafico')}
-                    style={{
-                      background: activeView === 'grafico' ? 'rgba(168, 85, 247, 0.2)' : 'none',
-                      border: 'none',
-                      color: activeView === 'grafico' ? '#c084fc' : '#8f9cae',
-                      padding: '6px 12px',
-                      borderRadius: '6px',
-                      fontSize: '12px',
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '6px',
-                      transition: 'all 0.2s ease'
-                    }}
-                  >
-                    <Layers size={14} /> Árbol Gráfico
-                  </button>
-                  <button 
-                    onClick={() => setActiveView('linux')}
-                    style={{
-                      background: activeView === 'linux' ? 'rgba(168, 85, 247, 0.2)' : 'none',
-                      border: 'none',
-                      color: activeView === 'linux' ? '#c084fc' : '#8f9cae',
-                      padding: '6px 12px',
-                      borderRadius: '6px',
-                      fontSize: '12px',
-                      fontWeight: 600,
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '6px',
-                      transition: 'all 0.2s ease'
-                    }}
-                  >
-                    <FileCode size={14} /> Vista Linux (tree)
-                  </button>
+        {/* A. Vista Jerarquías & Explorador de Consola */}
+        {(activeMenu === 'jerarquias' || activeMenu === 'consola_tree') && (() => {
+          const currentView = activeMenu === 'jerarquias' ? 'grafico' : 'linux';
+          return (
+            <>
+              <header style={{ height: '80px', padding: '0 30px 0 60px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.06)', background: 'rgba(10,14,23,0.3)', backdropFilter: 'blur(12px)' }}>
+                <div>
+                  <h2 style={{ margin: 0, fontSize: '18px', fontWeight: 600, color: '#fff' }}>
+                    {activeMenu === 'jerarquias' ? 'Árbol Gráfico Jerárquico' : 'Explorador de Consola (DMS)'}
+                  </h2>
+                  <p style={{ margin: 0, fontSize: '12px', color: '#8f9cae' }}>
+                    {activeMenu === 'jerarquias' ? 'Visualiza y despliega la estructura organizacional del DMS en formato gráfico.' : 'Navegación e interacción directa sobre la jerarquía del DMS.'}
+                  </p>
                 </div>
                 
-                {userRol === 'admin' && (
-                  <button 
-                    onClick={() => {
-                      if (!selectedNode) {
-                        alert("Selecciona primero un nodo padre en el árbol.");
-                        return;
-                      }
-                      setShowAddModal(true);
-                    }}
-                    className="btn-primary"
-                    style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 20px', borderRadius: '10px', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}
-                  >
-                    <Plus size={16} /> Nueva Subcategoría
-                  </button>
-                )}
-              </div>
-            </header>
+                <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                  <div style={{ display: 'flex', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '8px', padding: '3px' }}>
+                    <button 
+                      onClick={() => {
+                        setTipoJerarquia('logico');
+                        setSelectedVistaId('');
+                        fetchTreeData('logico');
+                      }}
+                      style={{
+                        background: tipoJerarquia === 'logico' ? 'rgba(168, 85, 247, 0.2)' : 'none',
+                        border: 'none',
+                        color: tipoJerarquia === 'logico' ? '#c084fc' : '#8f9cae',
+                        padding: '6px 12px',
+                        borderRadius: '6px',
+                        fontSize: '12px',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease'
+                      }}
+                    >
+                      📂 Estructura Lógica
+                    </button>
+                    <button 
+                      onClick={() => {
+                        setTipoJerarquia('fisico');
+                        setSelectedVistaId('');
+                        fetchTreeData('fisico');
+                      }}
+                      style={{
+                        background: tipoJerarquia === 'fisico' ? 'rgba(34, 197, 94, 0.2)' : 'none',
+                        border: 'none',
+                        color: tipoJerarquia === 'fisico' ? '#22c55e' : '#8f9cae',
+                        padding: '6px 12px',
+                        borderRadius: '6px',
+                        fontSize: '12px',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease'
+                      }}
+                    >
+                      📍 Estructura Física
+                    </button>
+                  </div>
 
-            <div style={{ flex: 1, width: '100%', height: '100%', position: 'relative', overflow: 'hidden' }}>
-              {(() => {
-                const arbolRender = obtenerArbolFiltrado();
-                return activeView === 'grafico' ? (
-                  <div style={{ width: '100%', height: '100%' }} className="rd3t-tree-container">
-                    {arbolRender && Object.keys(arbolRender).length > 0 ? (
-                      <Tree 
-                        key={treeKey} 
-                        data={arbolRender} 
-                        orientation="horizontal"  
-                        pathFunc="diagonal"
-                        renderCustomNodeElement={renderCustomNode}
-                        translate={{ x: 100, y: 300 }} 
-                        nodeSize={{ x: 260, y: 100 }}  
-                      />
-                    ) : (
-                      <div style={{ display: 'flex', width: '100%', height: '100%', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: '16px', color: '#64748b' }}>
-                        <Activity size={48} className="pulse-glow" />
-                        {treeData ? (
-                          <span>Ningún elemento coincide con los filtros aplicados.</span>
-                        ) : (
-                          <span>Conectando con el almacén PostgreSQL...</span>
-                        )}
-                      </div>
+                  {/* Selector y Guardado de Vistas */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.05)', padding: '4px 8px', borderRadius: '8px' }}>
+                    <select
+                      value={selectedVistaId}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setSelectedVistaId(val);
+                        if (val) handleApplyVista(val);
+                      }}
+                      style={{
+                        background: '#121624',
+                        border: '1px solid rgba(255,255,255,0.08)',
+                        borderRadius: '6px',
+                        color: '#fff',
+                        padding: '6px 10px',
+                        fontSize: '12px',
+                        fontFamily: 'Outfit',
+                        outline: 'none',
+                        cursor: 'pointer',
+                        minWidth: '120px'
+                      }}
+                    >
+                      <option value="">-- Vistas Guardadas --</option>
+                      {vistasGuardadas.filter(v => v.tipo_arbol === tipoJerarquia).map(v => (
+                        <option key={`vista-sel-${v.id}`} value={v.id}>{v.nombre}</option>
+                      ))}
+                    </select>
+
+                    {selectedVistaId && (
+                      <button
+                        onClick={async () => {
+                          const vista = vistasGuardadas.find(v => v.id === parseInt(selectedVistaId));
+                          if (!vista) return;
+                          
+                          const expandidos = obtenerNodosExpandidosActuales();
+                          
+                          try {
+                            setIsLoading(true);
+                            const res = await fetch(`${API_BASE_URL}/vistas/`, {
+                              method: 'POST',
+                              headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${token}`
+                              },
+                              body: JSON.stringify({
+                                nombre: vista.nombre,
+                                tipo_arbol: tipoJerarquia,
+                                nodos_expandidos: expandidos
+                              })
+                            });
+                            if (res.ok) {
+                              triggerNotification("Vista Actualizada", `Se guardaron los cambios en "${vista.nombre}".`);
+                              await fetchVistasGuardadas();
+                            }
+                          } catch(err) {
+                            console.error(err);
+                          } finally {
+                            setIsLoading(false);
+                          }
+                        }}
+                        style={{
+                          padding: '6px 12px',
+                          borderRadius: '6px',
+                          fontSize: '12px',
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                          background: 'linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%)',
+                          border: 'none',
+                          color: '#fff',
+                          boxShadow: '0 0 10px rgba(6, 182, 212, 0.25)',
+                          transition: 'all 0.2s',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '6px'
+                        }}
+                        title="Guardar cambios de expansión en la vista seleccionada"
+                      >
+                        💾 Guardar Vista
+                      </button>
+                    )}
+
+                    <button
+                      onClick={() => setShowSaveVistaModal(true)}
+                      style={{
+                        padding: '6px 12px',
+                        borderRadius: '6px',
+                        fontSize: '12px',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        background: 'linear-gradient(135deg, rgba(168, 85, 247, 0.15) 0%, rgba(99, 102, 241, 0.15) 100%)',
+                        border: '1px solid rgba(168, 85, 247, 0.3)',
+                        color: '#c084fc',
+                        transition: 'all 0.2s'
+                      }}
+                      title="Crear una nueva vista con el despliegue actual de carpetas"
+                    >
+                      ✨ Crear Nueva Vista
+                    </button>
+
+                    {selectedVistaId && (
+                      <button
+                        onClick={() => handleDeleteVista(selectedVistaId)}
+                        style={{
+                          background: 'rgba(239, 68, 68, 0.1)',
+                          border: '1px solid rgba(239, 68, 68, 0.3)',
+                          borderRadius: '6px',
+                          color: '#f87171',
+                          padding: '6px 10px',
+                          fontSize: '12px',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}
+                        title="Eliminar vista seleccionada"
+                      >
+                        🗑️
+                      </button>
                     )}
                   </div>
-                ) : (
-                  <div style={{ width: '100%', height: '100%', overflow: 'auto', padding: '40px', boxSizing: 'border-box', background: '#0b0f19' }}>
-                    <div style={{ minWidth: '600px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '12px', marginBottom: '16px' }}>
-                        <span style={{ fontSize: '13px', fontFamily: 'monospace', color: '#22c55e' }}>root@xf-dms-server:~#</span>
-                        <span style={{ fontSize: '13px', fontFamily: 'monospace', color: '#fff' }}>tree -a --dirsfirst ./dms_root</span>
-                      </div>
-
-                      {arbolRender && Object.keys(arbolRender).length > 0 ? (
-                        renderLinuxStyleTree(arbolRender, '', true, true)
-                      ) : (
-                        <span style={{ color: '#475569', fontSize: '13px', fontFamily: 'monospace' }}>Ningún elemento coincide con los filtros aplicados o no hay jerarquías cargadas.</span>
-                      )}
-                    
-                    <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '12px', marginTop: '16px', display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontFamily: 'monospace', color: '#475569' }}>
-                      <span>Ecosistema XpertiFlow DMS</span>
-                      <span>Ctrl + F para búsqueda rápida en el viewport</span>
-                    </div>
-                  </div>
+                  
+                  {(userRol === 'admin' || selectedNode?.attributes?.puede_escribir === true) && (
+                    <button 
+                      onClick={() => {
+                        if (!selectedNode) {
+                          alert("Selecciona primero un nodo padre en el árbol.");
+                          return;
+                        }
+                        setShowAddModal(true);
+                      }}
+                      className="btn-primary"
+                      style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 20px', borderRadius: '10px', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}
+                    >
+                      <Plus size={16} /> Nueva Subcategoría
+                    </button>
+                  )}
                 </div>
-                );
-              })()}
-            </div>
-          </>
-        )}
+              </header>
+
+              <div style={{ flex: 1, width: '100%', height: '100%', position: 'relative', overflow: 'hidden' }}>
+                {(() => {
+                  const arbolRender = obtenerArbolFiltrado();
+                  return currentView === 'grafico' ? (
+                    <div style={{ width: '100%', height: '100%' }} className="rd3t-tree-container">
+                      {arbolRender && Object.keys(arbolRender).length > 0 ? (
+                        <Tree 
+                          key={treeKey} 
+                          data={arbolRender} 
+                          orientation="horizontal"  
+                          pathFunc="diagonal"
+                          renderCustomNodeElement={renderCustomNode}
+                          translate={{ x: 100, y: 300 }} 
+                          nodeSize={{ x: 260, y: 100 }}  
+                        />
+                      ) : (
+                        <div style={{ display: 'flex', width: '100%', height: '100%', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: '16px', color: '#64748b' }}>
+                          <Activity size={48} className="pulse-glow" />
+                          {treeData ? (
+                            <span>Ningún elemento coincide con los filtros aplicados.</span>
+                          ) : (
+                            <span>Conectando con el almacén PostgreSQL...</span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div style={{ width: '100%', height: '100%', overflow: 'auto', padding: '40px', boxSizing: 'border-box', background: '#0b0f19' }}>
+                      <div style={{ minWidth: '600px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '12px', marginBottom: '16px' }}>
+                          <span style={{ fontSize: '13px', fontFamily: 'monospace', color: '#22c55e' }}>root@av-dms-server:~#</span>
+                          <span style={{ fontSize: '13px', fontFamily: 'monospace', color: '#fff' }}>tree -a --dirsfirst ./dms_root</span>
+                        </div>
+
+                        {arbolRender && Object.keys(arbolRender).length > 0 ? (
+                          renderLinuxStyleTree(arbolRender, '', true, true)
+                        ) : (
+                          <span style={{ color: '#475569', fontSize: '13px', fontFamily: 'monospace' }}>Ningún elemento coincide con los filtros aplicados o no hay jerarquías cargadas.</span>
+                        )}
+                      
+                        <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '12px', marginTop: '16px', display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontFamily: 'monospace', color: '#475569' }}>
+                          <span>Ecosistema Archi-vite DMS</span>
+                          <span>Ctrl + F para búsqueda rápida en el viewport</span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
+            </>
+          );
+        })()}
 
         {/* B. Vista Dashboard */}
         {activeMenu === 'dashboard' && renderDashboardView()}
@@ -3595,11 +5697,21 @@ export default function App() {
         {/* F. Vista Parametrización de Codificación */}
         {activeMenu === 'codificacion' && renderCodificacionView()}
 
+        {/* G. Vista Preferencias y Configuración del Sistema */}
+        {activeMenu === 'configuracion' && renderConfiguracionSistemaView()}
+
+        {/* H. Vista Alertas de Retención y Transferencia */}
+        {activeMenu === 'alertas' && renderAlertasRetencionView()}
+
+        {/* I. Vista Centro de Reportes Analíticos */}
+        {activeMenu === 'reportes' && renderReportesView()}
+
       </main>
 
       {/* 3. Panel Derecho (Ficha DMS de Detalles y Workflow Habilitados) */}
-      <section 
-        className="glass-panel" 
+      {(activeMenu === 'jerarquias' || activeMenu === 'consola_tree') && (
+        <section 
+          className="glass-panel" 
         onDragOver={(e) => {
           e.preventDefault();
           if (userRol === 'admin' && selectedNode && activeMenu === 'jerarquias') {
@@ -3673,7 +5785,17 @@ export default function App() {
             </div>
           ) : (
             <>
-              <div style={{ padding: '24px 24px 16px 24px', background: 'rgba(255,255,255,0.01)', borderBottom: '1px solid rgba(255,255,255,0.04)', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <div style={{ 
+                padding: '24px 24px 16px 24px', 
+                background: 'rgba(255,255,255,0.01)', 
+                borderBottom: '1px solid rgba(255,255,255,0.04)', 
+                display: 'flex', 
+                flexDirection: 'column', 
+                gap: '10px',
+                maxHeight: '58vh',
+                overflowY: 'auto',
+                flexShrink: 0
+              }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span style={{ fontSize: '10px', fontWeight: 600, color: '#c084fc', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Detalles de Categoría</span>
                 
@@ -3973,6 +6095,181 @@ export default function App() {
                 </div>
               </div>
 
+              {/* Sección de Permisos de Acceso a la Categoría (Solo Admin) */}
+              {userRol === 'admin' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '6px', background: 'rgba(255, 255, 255, 0.01)', border: '1px solid rgba(255,255,255,0.04)', padding: '12px', borderRadius: '8px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontSize: '11px', color: '#8f9cae', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <Key size={12} color="#a855f7" /> Permisos de Acceso:
+                    </span>
+                  </div>
+                  
+                  {/* Lista de Permisos actuales */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', maxHeight: '100px', overflowY: 'auto' }}>
+                    {permisosNodo.length > 0 ? (
+                      permisosNodo.map(perm => (
+                        <div key={perm.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 8px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.04)', borderRadius: '6px', fontSize: '11px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <span style={{ fontWeight: 600, color: '#fff' }}>
+                              {perm.usuario ? perm.usuario.username : `💼 Rol: ${perm.rol_organizacion?.nombre}`}
+                            </span>
+                            <span style={{ 
+                              fontSize: '9px', 
+                              color: perm.tipo_permiso === 'escritura' ? '#4ade80' : '#60a5fa', 
+                              background: perm.tipo_permiso === 'escritura' ? 'rgba(74,222,128,0.1)' : 'rgba(96,165,250,0.1)',
+                              border: perm.tipo_permiso === 'escritura' ? '1px solid rgba(74,222,128,0.2)' : '1px solid rgba(96,165,250,0.2)',
+                              padding: '1px 6px',
+                              borderRadius: '4px',
+                              textTransform: 'uppercase'
+                            }}>
+                              {perm.tipo_permiso}
+                            </span>
+                          </div>
+                          <button 
+                            onClick={() => handleDeletePermisoNodo(perm.id)}
+                            style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+                            title="Revocar acceso"
+                          >
+                            <X size={12} color="#f87171" />
+                          </button>
+                        </div>
+                      ))
+                    ) : (
+                      <span style={{ fontSize: '11px', color: '#64748b', textAlign: 'center', padding: '6px' }}>
+                        Acceso libre (solo limitado por rol global)
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Formulario para asignar nuevos permisos */}
+                  <form onSubmit={handleCreatePermisoNodo} style={{ display: 'flex', flexDirection: 'column', gap: '8px', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '10px', marginTop: '4px' }}>
+                    
+                    {/* Selector de Tipo de Destinatario */}
+                    <div style={{ display: 'flex', background: 'rgba(255,255,255,0.02)', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.06)', padding: '2px', gap: '2px' }}>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedPermisoDestinatarioType('usuario')}
+                        style={{
+                          flex: 1,
+                          background: selectedPermisoDestinatarioType === 'usuario' ? 'rgba(168, 85, 247, 0.2)' : 'none',
+                          border: 'none',
+                          color: selectedPermisoDestinatarioType === 'usuario' ? '#c084fc' : '#8f9cae',
+                          padding: '4px',
+                          borderRadius: '4px',
+                          fontSize: '10px',
+                          fontWeight: 600,
+                          cursor: 'pointer'
+                        }}
+                      >
+                        Usuario
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedPermisoDestinatarioType('rol')}
+                        style={{
+                          flex: 1,
+                          background: selectedPermisoDestinatarioType === 'rol' ? 'rgba(168, 85, 247, 0.2)' : 'none',
+                          border: 'none',
+                          color: selectedPermisoDestinatarioType === 'rol' ? '#c084fc' : '#8f9cae',
+                          padding: '4px',
+                          borderRadius: '4px',
+                          fontSize: '10px',
+                          fontWeight: 600,
+                          cursor: 'pointer'
+                        }}
+                      >
+                        Rol Org.
+                      </button>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '6px' }}>
+                      {selectedPermisoDestinatarioType === 'usuario' ? (
+                        <select
+                          value={selectedPermisoUsuarioId}
+                          onChange={(e) => setSelectedPermisoUsuarioId(e.target.value)}
+                          required
+                          style={{
+                            flex: 1,
+                            background: '#121624',
+                            border: '1px solid rgba(255,255,255,0.08)',
+                            borderRadius: '6px',
+                            color: '#fff',
+                            padding: '6px',
+                            fontSize: '11px',
+                            fontFamily: 'Outfit',
+                            outline: 'none',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          <option value="">-- Elegir Usuario --</option>
+                          {usuarios.filter(u => u.rol !== 'admin').map(usr => (
+                            <option key={`perm-usr-${usr.id}`} value={usr.id}>{usr.username}</option>
+                          ))}
+                        </select>
+                      ) : (
+                        <select
+                          value={selectedPermisoRolId}
+                          onChange={(e) => setSelectedPermisoRolId(e.target.value)}
+                          required
+                          style={{
+                            flex: 1,
+                            background: '#121624',
+                            border: '1px solid rgba(255,255,255,0.08)',
+                            borderRadius: '6px',
+                            color: '#fff',
+                            padding: '6px',
+                            fontSize: '11px',
+                            fontFamily: 'Outfit',
+                            outline: 'none',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          <option value="">-- Elegir Rol --</option>
+                          {rolesOrganizacion.map(rol => (
+                            <option key={`perm-rol-${rol.id}`} value={rol.id}>{rol.nombre}</option>
+                          ))}
+                        </select>
+                      )}
+
+                      <select
+                        value={selectedPermisoTipo}
+                        onChange={(e) => setSelectedPermisoTipo(e.target.value)}
+                        style={{
+                          background: '#121624',
+                          border: '1px solid rgba(255,255,255,0.08)',
+                          borderRadius: '6px',
+                          color: '#fff',
+                          padding: '6px',
+                          fontSize: '11px',
+                          fontFamily: 'Outfit',
+                          outline: 'none',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        <option value="lectura">Lectura</option>
+                        <option value="escritura">Escritura</option>
+                      </select>
+
+                      <button
+                        type="submit"
+                        style={{
+                          background: 'linear-gradient(135deg, #a855f7 0%, #7c3aed 100%)',
+                          border: 'none',
+                          borderRadius: '6px',
+                          color: '#fff',
+                          padding: '6px 12px',
+                          fontSize: '11px',
+                          fontWeight: 600,
+                          cursor: 'pointer'
+                        }}
+                      >
+                        Otorgar
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              )}
+
               {/* Sección de Enlaces Cruzados de la Categoría */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '4px', background: 'rgba(255, 255, 255, 0.01)', border: '1px solid rgba(255,255,255,0.04)', padding: '12px', borderRadius: '8px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -4030,7 +6327,7 @@ export default function App() {
             <div style={{ flex: 1, padding: '20px 24px', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                 <span style={{ fontSize: '11px', fontWeight: 600, color: '#8f9cae', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Archivos DMS Registrados</span>
-                {userRol === 'admin' && (
+                {(userRol === 'admin' || selectedNode?.attributes?.puede_escribir === true) && (
                   <div style={{ display: 'flex', gap: '10px' }}>
                     <button 
                       onClick={() => {
@@ -4041,7 +6338,7 @@ export default function App() {
                           setScannedLogicalNodeId(selectedNode.attributes.id);
                           setScannedPhysicalNodeId('');
                         }
-                        setScannedFileName(`Escaneo_${selectedNode.attributes?.codigo || 'XF'}_${Date.now().toString().slice(-4)}.jpg`);
+                        setScannedFileName(`Escaneo_${selectedNode.attributes?.codigo || 'DOC'}_${Date.now().toString().slice(-4)}.jpg`);
                         setShowScannerModal(true);
                       }} 
                       style={{ border: 'none', background: 'none', color: '#a855f7', fontSize: '11px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
@@ -4095,7 +6392,7 @@ export default function App() {
                           <a href={`${API_BASE_URL}${doc.ruta_archivo}`} download style={{ display: 'flex', alignItems: 'center', padding: '4px' }}>
                             <Download size={13} color="#8f9cae" />
                           </a>
-                          {userRol === 'admin' && (
+                          {(userRol === 'admin' || selectedNode?.attributes?.puede_escribir === true) && (
                             <>
                               <button 
                                 onClick={() => {
@@ -4135,8 +6432,8 @@ export default function App() {
                         </div>
                       </div>
 
-                      {/* Dropdown de cambio de estado para archivos DMS filtrado por FSM (Solo Admin) */}
-                      {userRol === 'admin' && (
+                      {/* Dropdown de cambio de estado para archivos DMS filtrado por FSM */}
+                      {(userRol === 'admin' || selectedNode?.attributes?.puede_escribir === true) && (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', borderTop: '1px solid rgba(255,255,255,0.03)', paddingTop: '6px', marginTop: '2px' }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                             <span style={{ fontSize: '9px', color: '#8f9cae' }}>Cambiar Fase:</span>
@@ -4156,15 +6453,15 @@ export default function App() {
                                 flex: 1
                               }}
                             >
-                              <option value="">Sin Estado</option>
+                              <option style={{ background: '#121624', color: '#fff' }} value="">Sin Estado</option>
                               
                               {/* Filtrar y mapear los estados válidos por máquina de estados para archivos */}
                               {getValidosEstadosSiguientes(doc.estado?.nombre, 'archivo').map(est => (
-                                <option key={`doc-state-${est.id}`} value={est.id}>#{est.secuencia} - {est.nombre}</option>
+                                <option style={{ background: '#121624', color: '#fff' }} key={`doc-state-${est.id}`} value={est.id}>#{est.secuencia} - {est.nombre}</option>
                               ))}
                               
                               {doc.estado?.nombre && (
-                                <option disabled value="">
+                                <option style={{ background: '#121624', color: '#8f9cae' }} disabled value="">
                                   [Fase Actual: {doc.estado.nombre}]
                                 </option>
                               )}
@@ -4261,6 +6558,7 @@ export default function App() {
           </div>
         )}
       </section>
+      )}
 
       {/* MODAL NUEVO ESTADO DE WORKFLOW */}
       {showAddEstadoModal && (
@@ -4268,9 +6566,28 @@ export default function App() {
           <form onSubmit={handleCreateEstado} className="glass-panel" style={{ width: '420px', padding: '30px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.08)' }}>
             <h3 style={{ margin: '0 0 20px 0', fontSize: '20px', fontWeight: 600, color: '#fff' }}>Añadir Estado de Workflow</h3>
             
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '24px' }}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                <label style={{ fontSize: '13px', color: '#8f9cae', fontWeight: 500 }}>Nombre del Estado</label>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '24px', position: 'relative' }}>
+              
+              {/* CAMPO: Nombre del Estado */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', position: 'relative' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <label style={{ fontSize: '13px', color: '#8f9cae', fontWeight: 500 }}>Nombre del Estado</label>
+                  <span 
+                    onClick={() => setActiveTooltip(activeTooltip === 'nombre' ? null : 'nombre')}
+                    style={{ color: 'var(--primary-glow)', cursor: 'pointer', display: 'inline-flex', alignItems: 'center' }}
+                  >
+                    <HelpCircle size={14} style={{ filter: 'drop-shadow(0 0 2px var(--primary-glow))' }} />
+                  </span>
+                </div>
+                {activeTooltip === 'nombre' && (
+                  <div style={{ position: 'absolute', top: '-75px', left: 0, right: 0, padding: '10px 12px', background: 'rgba(15,11,28,0.96)', border: '1px solid var(--primary-glow)', borderRadius: '8px', boxShadow: '0 4px 15px rgba(0,0,0,0.5)', zIndex: 110, fontSize: '11px', color: '#cbd5e1', lineHeight: '1.4', backdropFilter: 'blur(8px)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 600, color: '#fff', marginBottom: '3px' }}>
+                      <span>Ayuda: Nombre del Estado</span>
+                      <span onClick={() => setActiveTooltip(null)} style={{ color: '#f87171', cursor: 'pointer' }}>✕</span>
+                    </div>
+                    Identificador de la fase. Ejemplos comunes: "Borrador" (redacción inicial), "En Revisión" o "Archivado" (fase final inmutable).
+                  </div>
+                )}
                 <input 
                   type="text" 
                   required
@@ -4281,21 +6598,57 @@ export default function App() {
                 />
               </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                <label style={{ fontSize: '13px', color: '#8f9cae', fontWeight: 500 }}>Aplica A (Tipo de Elemento)</label>
+              {/* CAMPO: Aplica A (Alcance) */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', position: 'relative' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <label style={{ fontSize: '13px', color: '#8f9cae', fontWeight: 500 }}>Aplica A (Tipo de Elemento)</label>
+                  <span 
+                    onClick={() => setActiveTooltip(activeTooltip === 'aplicaA' ? null : 'aplicaA')}
+                    style={{ color: 'var(--primary-glow)', cursor: 'pointer', display: 'inline-flex', alignItems: 'center' }}
+                  >
+                    <HelpCircle size={14} style={{ filter: 'drop-shadow(0 0 2px var(--primary-glow))' }} />
+                  </span>
+                </div>
+                {activeTooltip === 'aplicaA' && (
+                  <div style={{ position: 'absolute', top: '-90px', left: 0, right: 0, padding: '10px 12px', background: 'rgba(15,11,28,0.96)', border: '1px solid var(--primary-glow)', borderRadius: '8px', boxShadow: '0 4px 15px rgba(0,0,0,0.5)', zIndex: 110, fontSize: '11px', color: '#cbd5e1', lineHeight: '1.4', backdropFilter: 'blur(8px)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 600, color: '#fff', marginBottom: '3px' }}>
+                      <span>Ayuda: Alcance de Aplicación</span>
+                      <span onClick={() => setActiveTooltip(null)} style={{ color: '#f87171', cursor: 'pointer' }}>✕</span>
+                    </div>
+                    Define el límite del estado: "Ambos" aplica a todo; "Sólo Categorías" aplica únicamente a carpetas lógicas; "Sólo Archivos" aplica a los documentos finales para regir sus transiciones.
+                  </div>
+                )}
                 <select 
                   value={newEstadoAplicaA}
                   onChange={(e) => setNewEstadoAplicaA(e.target.value)}
-                  style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px', padding: '10px 14px', color: '#fff', fontSize: '13px', outline: 'none', fontFamily: 'Outfit', cursor: 'pointer' }}
+                  style={{ background: '#121624', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px', padding: '10px 14px', color: '#fff', fontSize: '13px', outline: 'none', fontFamily: 'Outfit', cursor: 'pointer' }}
                 >
-                  <option value="ambos">Categorías y Archivos (Ambos)</option>
-                  <option value="categoria">Sólo Categorías (Carpetas)</option>
-                  <option value="archivo">Sólo Archivos Finales (Documentos)</option>
+                  <option style={{ background: '#121624', color: '#fff' }} value="ambos">Categorías y Archivos (Ambos)</option>
+                  <option style={{ background: '#121624', color: '#fff' }} value="categoria">Sólo Categorías (Carpetas)</option>
+                  <option style={{ background: '#121624', color: '#fff' }} value="archivo">Sólo Archivos Finales (Documentos)</option>
                 </select>
               </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                <label style={{ fontSize: '13px', color: '#8f9cae', fontWeight: 500 }}>Color de Representación Neón</label>
+              {/* CAMPO: Color Neón */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', position: 'relative' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <label style={{ fontSize: '13px', color: '#8f9cae', fontWeight: 500 }}>Color de Representación Neón</label>
+                  <span 
+                    onClick={() => setActiveTooltip(activeTooltip === 'color' ? null : 'color')}
+                    style={{ color: 'var(--primary-glow)', cursor: 'pointer', display: 'inline-flex', alignItems: 'center' }}
+                  >
+                    <HelpCircle size={14} style={{ filter: 'drop-shadow(0 0 2px var(--primary-glow))' }} />
+                  </span>
+                </div>
+                {activeTooltip === 'color' && (
+                  <div style={{ position: 'absolute', top: '-75px', left: 0, right: 0, padding: '10px 12px', background: 'rgba(15,11,28,0.96)', border: '1px solid var(--primary-glow)', borderRadius: '8px', boxShadow: '0 4px 15px rgba(0,0,0,0.5)', zIndex: 110, fontSize: '11px', color: '#cbd5e1', lineHeight: '1.4', backdropFilter: 'blur(8px)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 600, color: '#fff', marginBottom: '3px' }}>
+                      <span>Ayuda: Color de Representación</span>
+                      <span onClick={() => setActiveTooltip(null)} style={{ color: '#f87171', cursor: 'pointer' }}>✕</span>
+                    </div>
+                    Color asignado a esta fase. Se reflejará en las insignias, nodos del árbol interactivo y bordes decorativos en la terminal de la consola para identificar visualmente la fase.
+                  </div>
+                )}
                 <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                   <input 
                     type="color" 
@@ -4313,8 +6666,26 @@ export default function App() {
                 </div>
               </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                <label style={{ fontSize: '13px', color: '#8f9cae', fontWeight: 500 }}>Secuencia / Orden (Número)</label>
+              {/* CAMPO: Secuencia */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', position: 'relative' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <label style={{ fontSize: '13px', color: '#8f9cae', fontWeight: 500 }}>Secuencia / Orden (Número)</label>
+                  <span 
+                    onClick={() => setActiveTooltip(activeTooltip === 'secuencia' ? null : 'secuencia')}
+                    style={{ color: 'var(--primary-glow)', cursor: 'pointer', display: 'inline-flex', alignItems: 'center' }}
+                  >
+                    <HelpCircle size={14} style={{ filter: 'drop-shadow(0 0 2px var(--primary-glow))' }} />
+                  </span>
+                </div>
+                {activeTooltip === 'secuencia' && (
+                  <div style={{ position: 'absolute', top: '-75px', left: 0, right: 0, padding: '10px 12px', background: 'rgba(15,11,28,0.96)', border: '1px solid var(--primary-glow)', borderRadius: '8px', boxShadow: '0 4px 15px rgba(0,0,0,0.5)', zIndex: 110, fontSize: '11px', color: '#cbd5e1', lineHeight: '1.4', backdropFilter: 'blur(8px)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 600, color: '#fff', marginBottom: '3px' }}>
+                      <span>Ayuda: Orden de Secuencia</span>
+                      <span onClick={() => setActiveTooltip(null)} style={{ color: '#f87171', cursor: 'pointer' }}>✕</span>
+                    </div>
+                    Valor numérico entero (inicia en 1) que determina la jerarquía cronológica de la fase. Los estados con número menor preceden a los de número mayor.
+                  </div>
+                )}
                 <input 
                   type="number" 
                   required
@@ -4348,6 +6719,57 @@ export default function App() {
       )}
 
       {/* MODAL NUEVA SUBCATEGORÍA */}
+      {/* MODAL CONFIRMAR RESTABLECIMIENTO DE SISTEMA */}
+      {showResetConfirmModal && (
+        <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+          <div className="glass-panel" style={{ width: '420px', padding: '30px', borderRadius: '16px', border: '1px solid rgba(239, 68, 68, 0.3)', boxShadow: '0 0 30px rgba(239, 68, 68, 0.25)', margin: 'auto', display: 'flex', flexDirection: 'column', gap: '20px', background: '#0a090f' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', textAlign: 'center' }}>
+              <div style={{ background: 'rgba(239, 68, 68, 0.15)', width: '56px', height: '56px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid rgba(239, 68, 68, 0.3)', boxShadow: '0 0 15px rgba(239, 68, 68, 0.2)' }}>
+                <AlertTriangle size={28} color="#ef4444" className="retencion-alerta-blink" />
+              </div>
+              <h3 style={{ margin: '0', fontSize: '20px', fontWeight: 700, color: '#fff', letterSpacing: '-0.02em' }}>¿Inicializar Base de Datos?</h3>
+              <p style={{ margin: '0', fontSize: '13px', color: '#9ca3af', lineHeight: '1.5' }}>
+                Estás a punto de vaciar **completamente** el sistema. Se eliminarán permanentemente todas las jerarquías lógicas/físicas, documentos cargados, personas y roles creados.
+              </p>
+              <div style={{ background: 'rgba(239, 68, 68, 0.08)', border: '1px dashed rgba(239, 68, 68, 0.2)', padding: '10px 14px', borderRadius: '8px', fontSize: '11px', color: '#f87171', fontWeight: 500 }}>
+                ⚠️ Esta acción es definitiva y no se puede deshacer.
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: '14px', marginTop: '5px' }}>
+              <button
+                type="button"
+                onClick={() => setShowResetConfirmModal(false)}
+                className="glass-card"
+                style={{ flex: 1, color: '#fff', padding: '12px', borderRadius: '8px', fontSize: '13px', cursor: 'pointer', border: '1px solid rgba(255,255,255,0.06)', fontWeight: 600 }}
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={handleResetSistema}
+                disabled={isResetting}
+                style={{
+                  flex: 1,
+                  background: 'linear-gradient(135deg, #ef4444 0%, #b91c1c 100%)',
+                  border: 'none',
+                  color: '#fff',
+                  borderRadius: '8px',
+                  padding: '12px',
+                  fontSize: '13px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  boxShadow: '0 0 15px rgba(239, 68, 68, 0.35)'
+                }}
+                className="hover-scale"
+              >
+                {isResetting ? 'Vaciando...' : 'Confirmar Restablecer'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {showAddModal && (
         <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
           <form onSubmit={handleAddChildNode} className="glass-panel" style={{ width: '440px', padding: '30px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.08)', margin: 'auto', display: 'flex', flexDirection: 'column', gap: '20px' }}>
@@ -4367,12 +6789,12 @@ export default function App() {
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                <label style={{ fontSize: '13px', color: '#8f9cae', fontWeight: 500 }}>Abreviación (Máx. 5 letras)</label>
+                <label style={{ fontSize: '13px', color: '#8f9cae', fontWeight: 500 }}>Abreviación (Máx. 10 letras)</label>
                 <input 
                   type="text" 
                   required
-                  maxLength={5}
-                  placeholder="Ej: MED, LAB"
+                  maxLength={10}
+                  placeholder="Ej: MED, CJ-FIN26"
                   value={newNodeAbbreviation}
                   onChange={(e) => setNewNodeAbbreviation(e.target.value)}
                   style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px', padding: '10px 14px', color: '#fff', fontSize: '13px', outline: 'none', fontFamily: 'Outfit' }}
@@ -4454,23 +6876,55 @@ export default function App() {
 
               {/* Carga de Imagen (Solo si es Físico) */}
               {isPhysicalLocation && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', borderTop: '1px solid rgba(255,255,255,0.04)', paddingTop: '12px' }}>
-                  <label style={{ fontSize: '13px', color: '#8f9cae', fontWeight: 500 }}>Foto de la Ubicación Física</label>
-                  <input 
-                    type="file" 
-                    accept="image/*"
-                    onChange={(e) => {
-                      if (e.target.files && e.target.files[0]) {
-                        setNodeImageFile(e.target.files[0]);
-                      }
-                    }}
-                    style={{ fontSize: '11px', color: '#cbd5e1', cursor: 'pointer' }}
-                  />
-                  {nodeImageFile && (
-                    <span style={{ fontSize: '10px', color: '#22c55e' }}>
-                      📸 Imagen cargada: {nodeImageFile.name}
-                    </span>
-                  )}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', borderTop: '1px solid rgba(255,255,255,0.04)', paddingTop: '12px' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <label style={{ fontSize: '13px', color: '#8f9cae', fontWeight: 500 }}>Foto de la Ubicación Física</label>
+                    <input 
+                      type="file" 
+                      accept="image/*"
+                      onChange={(e) => {
+                        if (e.target.files && e.target.files[0]) {
+                          setNodeImageFile(e.target.files[0]);
+                        }
+                      }}
+                      style={{ fontSize: '11px', color: '#cbd5e1', cursor: 'pointer' }}
+                    />
+                    {nodeImageFile && (
+                      <span style={{ fontSize: '10px', color: '#22c55e' }}>
+                        📸 Imagen cargada: {nodeImageFile.name}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Reglas de Retención (Meses Límite) */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <label style={{ fontSize: '13px', color: '#8f9cae', fontWeight: 500 }}>Meses Límite de Retención (Regla Física)</label>
+                    <input 
+                      type="number" 
+                      min={0}
+                      placeholder="Ej: 12 (meses para alertar transferencia)"
+                      value={newNodeRetentionMonths}
+                      onChange={(e) => setNewNodeRetentionMonths(e.target.value)}
+                      style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px', padding: '10px 14px', color: '#fff', fontSize: '13px', outline: 'none', fontFamily: 'Outfit' }}
+                    />
+                  </div>
+
+                  {/* Ubicación Destino de Transferencia */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <label style={{ fontSize: '13px', color: '#8f9cae', fontWeight: 500 }}>Ubicación Física Destino (Transferencia)</label>
+                    <select 
+                      value={newNodeTransferDestinationId}
+                      onChange={(e) => setNewNodeTransferDestinationId(e.target.value)}
+                      style={{ background: '#121624', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px', padding: '10px 14px', color: '#fff', fontSize: '13px', outline: 'none', fontFamily: 'Outfit', cursor: 'pointer' }}
+                    >
+                      <option style={{ background: '#121624', color: '#fff' }} value="">-- Sin Destino (Fin de Ciclo) --</option>
+                      {getDestinosElegibles(treeData, true).map(dest => (
+                        <option style={{ background: '#121624', color: '#fff' }} key={`trans-dest-${dest.id}`} value={dest.id}>
+                          {dest.codigo} - {dest.nombre}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
               )}
 
@@ -4609,7 +7063,7 @@ export default function App() {
                   {previewFileName.endsWith('.xlsx') || previewFileName.endsWith('.xls') ? (
                     <div style={{ background: '#1b2030', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px', padding: '20px', width: '100%' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '8px' }}>
-                        <span style={{ fontSize: '14px', fontWeight: 600, color: '#22c55e' }}>📊 Hoja de Cálculo: XF Spreadsheet Stream</span>
+                        <span style={{ fontSize: '14px', fontWeight: 600, color: '#22c55e' }}>📊 Hoja de Cálculo: AV Spreadsheet Stream</span>
                         <span style={{ fontSize: '11px', color: '#8f9cae' }}>Solo lectura</span>
                       </div>
                       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', color: '#fff' }}>
@@ -4646,7 +7100,7 @@ export default function App() {
                   ) : (
                     <div style={{ background: '#fff', color: '#333', padding: '40px', borderRadius: '4px', width: '100%', maxWidth: '600px', margin: '0 auto', boxShadow: '0 10px 25px rgba(0,0,0,0.5)', boxSizing: 'border-box' }}>
                       <div style={{ borderBottom: '2px solid #a855f7', paddingBottom: '12px', marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ fontSize: '12px', fontWeight: 700, color: '#a855f7' }}>XPERTIFLOW OFFICE SUITE</span>
+                        <span style={{ fontSize: '12px', fontWeight: 700, color: '#a855f7' }}>ARCHI-VITE OFFICE SUITE</span>
                         <span style={{ fontSize: '10px', color: '#64748b' }}>CONFIDENCIAL</span>
                       </div>
                       <h2 style={{ fontSize: '18px', margin: '0 0 16px 0', color: '#111' }}>{previewFileName}</h2>
@@ -4860,7 +7314,7 @@ export default function App() {
                 <Sliders size={20} color="#c084fc" />
               </div>
               <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 700, color: '#fff' }}>
-                Re-ubicar {moveElementType === 'nodo' ? 'Categoría/Ubicación' : 'Archivo DMS'}
+                {moveElementType === 'nodo' ? 'Re-ubicar Categoría/Ubicación' : 'Vincular / Re-ubicar Archivo DMS'}
               </h3>
             </div>
 
@@ -4923,15 +7377,15 @@ export default function App() {
                   cursor: 'pointer'
                 }}
               >
-                <option value="">-- Seleccionar Destino --</option>
+                <option style={{ background: '#121624', color: '#fff' }} value="">-- Seleccionar Destino --</option>
                 {moveElementType === 'nodo' && (
-                  <option value="raiz">Raíz Central (Sin padre)</option>
+                  <option style={{ background: '#121624', color: '#fff' }} value="raiz">Raíz Central (Sin padre)</option>
                 )}
                 {getDestinosElegibles(
                   treeData, 
                   moveElementType === 'nodo' ? moveElementIsPhysical : (moveFileTypeSelect === 'fisico')
                 ).map(dest => (
-                  <option key={`move-dest-${dest.id}`} value={dest.id}>
+                  <option style={{ background: '#121624', color: '#fff' }} key={`move-dest-${dest.id}`} value={dest.id}>
                     {dest.codigo} - {dest.nombre}
                   </option>
                 ))}
@@ -4955,7 +7409,7 @@ export default function App() {
                 className="btn-primary"
                 style={{ flex: 1, padding: '12px', borderRadius: '8px', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}
               >
-                Confirmar Movimiento
+                {moveElementType === 'nodo' ? 'Confirmar Movimiento' : 'Confirmar Vinculación / Mover'}
               </button>
             </div>
           </form>
@@ -4997,11 +7451,11 @@ export default function App() {
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <label style={{ fontSize: '12px', color: '#cbd5e1', fontWeight: 500 }}>Identificación (Cédula o Código Estudiantil):</label>
+              <label style={{ fontSize: '12px', color: '#cbd5e1', fontWeight: 500 }}>Identificación (DNI, Cédula o Registro):</label>
               <input 
                 type="text" 
                 required
-                placeholder="Ej. DOC-4581 o 1045236"
+                placeholder="Ej. DNI-87261 o 1045236"
                 value={newPersonaIdentificacion}
                 onChange={(e) => setNewPersonaIdentificacion(e.target.value)}
                 style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px', padding: '10px 12px', color: '#fff', fontSize: '13px', outline: 'none', fontFamily: 'Outfit' }}
@@ -5039,21 +7493,53 @@ export default function App() {
                 }}
               >
                 {rolesOrganizacion.map(rol => (
-                  <option key={`new-per-rol-${rol.id}`} value={rol.id}>{rol.nombre} ({rol.codigo})</option>
+                  <option style={{ background: '#121624', color: '#fff' }} key={`new-per-rol-${rol.id}`} value={rol.id}>{rol.nombre} ({rol.codigo})</option>
                 ))}
               </select>
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <label style={{ fontSize: '12px', color: '#cbd5e1', fontWeight: 500 }}>Carrera o Departamento:</label>
+              <label style={{ fontSize: '12px', color: '#cbd5e1', fontWeight: 500 }}>Departamento o Área:</label>
               <input 
                 type="text" 
-                placeholder="Ej. Ingeniería de Sistemas"
+                placeholder="Ej. Finanzas, Operaciones, TI..."
                 value={newPersonaCarrera}
                 onChange={(e) => setNewPersonaCarrera(e.target.value)}
                 style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px', padding: '10px 12px', color: '#fff', fontSize: '13px', outline: 'none', fontFamily: 'Outfit' }}
               />
             </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 0' }}>
+              <input 
+                type="checkbox"
+                id="create-user-checkbox"
+                checked={newPersonaCrearUsuario}
+                onChange={(e) => setNewPersonaCrearUsuario(e.target.checked)}
+                style={{ width: '16px', height: '16px', cursor: 'pointer', accentColor: '#a855f7' }}
+              />
+              <label htmlFor="create-user-checkbox" style={{ fontSize: '12.5px', color: '#fff', cursor: 'pointer', fontWeight: 500 }}>
+                Habilitar Cuenta de Usuario (Acceso al DMS)
+              </label>
+            </div>
+
+            {newPersonaCrearUsuario && (
+              <>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <label style={{ fontSize: '12px', color: '#cbd5e1', fontWeight: 500 }}>Nombre de Usuario (Username):</label>
+                  <input 
+                    type="text" 
+                    required={newPersonaCrearUsuario}
+                    placeholder="Ej. mquiroga"
+                    value={newPersonaUsername}
+                    onChange={(e) => setNewPersonaUsername(e.target.value)}
+                    style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px', padding: '10px 12px', color: '#fff', fontSize: '13px', outline: 'none', fontFamily: 'Outfit' }}
+                  />
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', padding: '12px', background: 'rgba(168, 85, 247, 0.03)', border: '1px dashed rgba(168, 85, 247, 0.2)', borderRadius: '8px', fontSize: '11px', color: '#c084fc', lineHeight: '1.4' }}>
+                  🔑 <strong>Nota de Seguridad:</strong> La contraseña por defecto del usuario será exactamente su número de identificación. En su primer inicio de sesión, el sistema le obligará a definir una contraseña nueva.
+                </div>
+              </>
+            )}
 
             <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
               <button 
@@ -5062,8 +7548,13 @@ export default function App() {
                   setShowCreatePersonaModal(false);
                   setNewPersonaIdentificacion('');
                   setNewPersonaNombre('');
-                  setNewPersonaRol('estudiante');
+                  if (rolesOrganizacion.length > 0) {
+                    setNewPersonaRolId(rolesOrganizacion[0].id);
+                  }
                   setNewPersonaCarrera('');
+                  setNewPersonaCrearUsuario(false);
+                  setNewPersonaUsername('');
+                  setNewPersonaPassword('');
                 }}
                 className="glass-card"
                 style={{ flex: 1, padding: '12px', color: '#fff', borderRadius: '8px', fontSize: '13px', cursor: 'pointer' }}
@@ -5119,7 +7610,7 @@ export default function App() {
                     {selectedPersonaExpediente.persona.nombre_completo}
                   </h3>
                   <span style={{ fontSize: '12px', color: '#8f9cae', textTransform: 'uppercase', fontWeight: 600 }}>
-                    {selectedPersonaExpediente.persona.rol} · {selectedPersonaExpediente.persona.carrera_departamento || 'Sin Carrera'}
+                    {selectedPersonaExpediente.persona.rol} · {selectedPersonaExpediente.persona.carrera_departamento || 'Sin Departamento/Área'}
                   </span>
                 </div>
               </div>
@@ -5135,7 +7626,7 @@ export default function App() {
               </div>
               <div style={{ flex: 1 }}>
                 <span style={{ color: '#8f9cae' }}>Ecosistema Global:</span>
-                <p style={{ margin: '4px 0 0 0', fontWeight: 700, color: '#c084fc' }}>XpertiFlow DMS (XF)</p>
+                <p style={{ margin: '4px 0 0 0', fontWeight: 700, color: '#c084fc' }}>Archi-vite DMS (AV)</p>
               </div>
             </div>
 
@@ -5180,7 +7671,9 @@ export default function App() {
                                 const redirect = async () => {
                                   try {
                                     setIsLoading(true);
-                                    const res = await fetch(`${API_BASE_URL}/nodos/arbol?tipo=${isPhysical ? 'fisico' : 'logico'}`);
+                                    const res = await fetch(`${API_BASE_URL}/nodos/arbol?tipo=${isPhysical ? 'fisico' : 'logico'}`, {
+                                      headers: { 'Authorization': `Bearer ${token}` }
+                                    });
                                     if (res.ok) {
                                       const dataTree = await res.json();
                                       const findNode = (r, id) => {
@@ -5405,9 +7898,9 @@ export default function App() {
                     onChange={(e) => setLinkPersonaRolMomentoId(e.target.value)}
                     style={{ background: '#0b0f19', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '6px', padding: '6px', color: '#fff', fontSize: '11px', outline: 'none' }}
                   >
-                    <option value="">-- Usar rol actual por defecto --</option>
+                    <option style={{ background: '#0b0f19', color: '#fff' }} value="">-- Usar rol actual por defecto --</option>
                     {rolesOrganizacion.map(rol => (
-                      <option key={`momento-rol-${rol.id}`} value={rol.id}>{rol.nombre} ({rol.codigo})</option>
+                      <option style={{ background: '#0b0f19', color: '#fff' }} key={`momento-rol-${rol.id}`} value={rol.id}>{rol.nombre} ({rol.codigo})</option>
                     ))}
                   </select>
                 </div>
@@ -5854,7 +8347,109 @@ export default function App() {
         </div>
       )}
 
-      {/* MODAL CONFIGURACIÓN DE ROLES ORGANIZACIONALES (XF) */}
+      {/* MODAL GUARDAR CONFIGURACIÓN DE VISTA */}
+      {showSaveVistaModal && (
+        <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(5,5,8,0.85)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 11600 }}>
+          <form 
+            onSubmit={handleSaveVista}
+            style={{ 
+              background: '#0a0e1a', 
+              border: '1px solid rgba(168, 85, 247, 0.4)', 
+              boxShadow: '0 0 30px rgba(168, 85, 247, 0.2)', 
+              borderRadius: '16px', 
+              padding: '24px', 
+              width: '380px', 
+              display: 'flex', 
+              flexDirection: 'column', 
+              gap: '16px' 
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div style={{ 
+                background: 'rgba(168, 85, 247, 0.1)', 
+                width: '36px', 
+                height: '36px', 
+                borderRadius: '8px', 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center' 
+              }}>
+                <span style={{ fontSize: '18px' }}>💾</span>
+              </div>
+              <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 700, color: '#fff' }}>
+                Guardar Configuración de Vista
+              </h3>
+            </div>
+
+            <p style={{ margin: 0, fontSize: '12px', color: '#cbd5e1', lineHeight: 1.5 }}>
+              Guarda el estado actual de expansión y colapso de las carpetas. Si el nombre ya existe, se sobrescribirá.
+            </p>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <label style={{ fontSize: '12px', color: '#cbd5e1', fontWeight: 500 }}>Nombre de la Vista:</label>
+              <input 
+                type="text" 
+                required
+                placeholder="Ej. Sistemas, Electrónica, Auditoría..."
+                value={newVistaName}
+                onChange={(e) => setNewVistaName(e.target.value)}
+                style={{ 
+                  background: 'rgba(255,255,255,0.02)', 
+                  border: '1px solid rgba(255,255,255,0.08)', 
+                  borderRadius: '8px', 
+                  padding: '10px 12px', 
+                  color: '#fff', 
+                  fontSize: '13px', 
+                  outline: 'none', 
+                  fontFamily: 'Outfit' 
+                }}
+              />
+            </div>
+
+            <div style={{ display: 'flex', gap: '10px', marginTop: '8px' }}>
+              <button 
+                type="button"
+                onClick={() => {
+                  setShowSaveVistaModal(false);
+                  setNewVistaName('');
+                }}
+                style={{ 
+                  flex: 1, 
+                  background: 'rgba(255,255,255,0.03)', 
+                  border: '1px solid rgba(255,255,255,0.08)', 
+                  borderRadius: '8px', 
+                  color: '#fff', 
+                  padding: '10px', 
+                  fontSize: '13px', 
+                  fontWeight: 600, 
+                  cursor: 'pointer' 
+                }}
+              >
+                Cancelar
+              </button>
+              <button 
+                type="submit"
+                style={{ 
+                  flex: 1, 
+                  background: 'linear-gradient(135deg, #a855f7 0%, #7c3aed 100%)', 
+                  border: 'none', 
+                  borderRadius: '8px', 
+                  color: '#fff', 
+                  padding: '10px', 
+                  fontSize: '13px', 
+                  fontWeight: 600, 
+                  cursor: 'pointer',
+                  boxShadow: '0 0 15px rgba(168, 85, 247, 0.3)' 
+                }}
+              >
+                Guardar Vista
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* MODAL CONFIGURACIÓN DE ROLES ORGANIZACIONALES (Archi-vite) */}
       {showRolesConfigModal && (
         <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(5,5,8,0.85)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 11500 }}>
           <div 
@@ -5962,7 +8557,7 @@ export default function App() {
                   <option value="#10b981">🟢 Verde Esmeralda</option>
                   <option value="#f59e0b">🟡 Amarillo Ámbar</option>
                   <option value="#ec4899">🔴 Fucsia Neón</option>
-                  <option value="#a855f7">🟣 Púrpura XF</option>
+                  <option value="#a855f7">🟣 Púrpura Archi-vite</option>
                   <option value="#06b6d4">🌐 Turquesa Cyan</option>
                   <option value="#f43f5e">🌹 Rosa Carmín</option>
                 </select>
@@ -5980,26 +8575,27 @@ export default function App() {
         </div>
       )}
 
-      {/* Toast Flotante Neón */}
+      {/* Toast Flotante Neón Homogeneizado */}
       {notification.show && (
         <div style={{
           position: 'fixed',
           top: '24px',
           right: '24px',
           zIndex: 12000,
-          background: 'rgba(10, 14, 23, 0.9)',
-          backdropFilter: 'blur(10px)',
-          border: '1px solid rgba(168, 85, 247, 0.4)',
+          background: 'var(--bg-color-panel)',
+          backdropFilter: 'blur(20px)',
+          border: notification.tipo === 'error' ? '1px solid #ef4444' : '1px solid var(--primary-glow)',
           borderRadius: '10px',
           padding: '16px 20px',
-          boxShadow: '0 0 20px rgba(168, 85, 247, 0.2)',
+          boxShadow: notification.tipo === 'error' ? '0 0 25px rgba(239, 68, 68, 0.25)' : '0 0 20px var(--glow-shadow-intensity)',
           display: 'flex',
           flexDirection: 'column',
           gap: '4px',
-          width: '280px'
+          width: '280px',
+          transition: 'all 0.3s ease'
         }}>
-          <h4 style={{ margin: 0, fontSize: '13px', fontWeight: 700, color: '#c084fc' }}>{notification.title}</h4>
-          <p style={{ margin: 0, fontSize: '12px', color: '#cbd5e1' }}>{notification.message}</p>
+          <h4 style={{ margin: 0, fontSize: '13px', fontWeight: 700, color: notification.tipo === 'error' ? '#f87171' : 'var(--primary-glow)' }}>{notification.title}</h4>
+          <p style={{ margin: 0, fontSize: '12px', color: 'var(--text-color-muted)' }}>{notification.message}</p>
         </div>
       )}
 

@@ -10,7 +10,11 @@ class Usuario(Base):
     username = Column(String(50), unique=True, index=True, nullable=False)
     password_hash = Column(String(255), nullable=False)
     rol = Column(String(20), default="user", nullable=False)  # "admin" o "user"
+    persona_id = Column(Integer, ForeignKey("personas.id", ondelete="SET NULL"), nullable=True)
+    debe_cambiar_password = Column(Boolean, default=False, nullable=False)
     creado_en = Column(DateTime(timezone=True), server_default=func.now())
+
+    persona = relationship("Persona", foreign_keys=[persona_id])
 
 class ActividadLog(Base):
     __tablename__ = "actividades_log"
@@ -54,12 +58,17 @@ class Nodo(Base):
     etiquetas = Column(JSON, nullable=True)
     creado_en = Column(DateTime(timezone=True), server_default=func.now())
 
+    # Retención y Transferencia
+    meses_retencion_limite = Column(Integer, nullable=True)
+    nodo_destino_transferencia_id = Column(Integer, ForeignKey("nodos.id", ondelete="SET NULL"), nullable=True)
+
     # Flujo de Trabajo
     estado_id = Column(Integer, ForeignKey("estados_workflow.id", ondelete="SET NULL"), nullable=True)
     estado = relationship("EstadoWorkflow")
 
-    # Relación autoreferenciada para el árbol jerárquico N-ario
-    parent = relationship("Nodo", remote_side=[id], backref=backref("children", cascade="all, delete-orphan"))
+    # Relación autoreferenciada y destino de transferencia
+    parent = relationship("Nodo", remote_side=[id], foreign_keys=[parent_id], backref=backref("children", cascade="all, delete-orphan"))
+    nodo_destino_transferencia = relationship("Nodo", remote_side=[id], foreign_keys=[nodo_destino_transferencia_id])
     
     # Relación con los documentos del DMS (Lógica y Física)
     documentos_logicos = relationship("Documento", foreign_keys="[Documento.nodo_id]", back_populates="nodo", cascade="all, delete-orphan")
@@ -76,6 +85,10 @@ class Documento(Base):
     version = Column(Integer, default=1, nullable=False)
     identificador_dms = Column(String(100), nullable=True)  # Clave para agrupar versiones
     creado_en = Column(DateTime(timezone=True), server_default=func.now())
+
+    # Retención
+    fecha_limite_retencion = Column(DateTime(timezone=True), nullable=True)
+    transferido_en = Column(DateTime(timezone=True), nullable=True)
 
     # Flujo de Trabajo
     estado_id = Column(Integer, ForeignKey("estados_workflow.id", ondelete="SET NULL"), nullable=True)
@@ -150,5 +163,33 @@ class ConfiguracionCodificacion(Base):
     usar_abreviacion_padre = Column(Boolean, default=True)
     prefijo_global = Column(String(20), default="")
     creado_en = Column(DateTime(timezone=True), server_default=func.now())
+
+
+class PermisoNodo(Base):
+    __tablename__ = "permisos_nodo"
+
+    id = Column(Integer, primary_key=True, index=True)
+    usuario_id = Column(Integer, ForeignKey("usuarios.id", ondelete="CASCADE"), nullable=True)
+    rol_organizacion_id = Column(Integer, ForeignKey("roles_organizacion.id", ondelete="CASCADE"), nullable=True)
+    nodo_id = Column(Integer, ForeignKey("nodos.id", ondelete="CASCADE"), nullable=False)
+    tipo_permiso = Column(String(20), nullable=False)  # "lectura" o "escritura"
+    creado_en = Column(DateTime(timezone=True), server_default=func.now())
+
+    usuario = relationship("Usuario")
+    rol_organizacion = relationship("RolOrganizacion")
+    nodo = relationship("Nodo", backref=backref("permisos", cascade="all, delete-orphan"))
+
+
+class VistaGuardada(Base):
+    __tablename__ = "vistas_guardadas"
+
+    id = Column(Integer, primary_key=True, index=True)
+    usuario_id = Column(Integer, ForeignKey("usuarios.id", ondelete="CASCADE"), nullable=False)
+    nombre = Column(String(100), nullable=False)
+    tipo_arbol = Column(String(20), nullable=False)  # "logico" o "fisico"
+    nodos_expandidos = Column(JSON, nullable=False)  # Lista de IDs de nodos expandidos
+    creado_en = Column(DateTime(timezone=True), server_default=func.now())
+
+    usuario = relationship("Usuario")
 
 

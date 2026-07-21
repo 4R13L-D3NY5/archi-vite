@@ -86,7 +86,7 @@ def ejecutar_stress_test():
         total_nodos = db.query(models.Nodo).count()
         total_docs = db.query(models.Documento).count()
         
-        print("\n=== Resultados del Reporte de Rendimiento (XF Stats) ===")
+        print("\n=== Resultados del Reporte de Rendimiento (Archi-vite Stats) ===")
         print(f"-> Total Nodos en Base de Datos: {total_nodos}")
         print(f"-> Total Documentos en Base de Datos: {total_docs}")
         print(f"-> Tiempo de inyección masiva: {inject_duration:.3f} segundos")

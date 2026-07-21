@@ -10,3 +10,9 @@
 - `[x]` Desarrollar versionamiento histórico en la carga de archivos DMS
 - `[x]` Implementar registros y panel de Logs de Auditoría en tiempo real
 - `[x]` Desarrollar módulo de exportación de inventarios estructurados en CSV
+## Nuevas Tareas: Copias de Seguridad y Usabilidad Jerárquica
+- [x] Implementar rutas de backups (`POST /sistema/backup/crear`, `GET /sistema/backups`, `GET /sistema/backup/descargar/{nombre}`, `DELETE /sistema/backup/eliminar/{nombre}`) en `backend/main.py`
+- [x] Integrar el panel de gestión de backups interactivo dentro de `renderConfiguracionSistemaView()` en `frontend/src/App.jsx`
+- [x] Implementar la funcionalidad de contraer/expandir nodos en la terminal virtual Linux Tree en `frontend/src/App.jsx`
+- [x] Implementar la persistencia en `localStorage` del estado de colapsado del árbol D3 al hacer clic en los nodos
+- [x] Validar el funcionamiento de backups en disco y persistencia del árbol ante recargas de página CSV
