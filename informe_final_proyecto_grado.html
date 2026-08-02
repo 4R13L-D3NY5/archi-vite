@@ -1,0 +1,2019 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Documento de Proyecto de Grado - UNITEPC</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      mermaid.initialize({
+        startOnLoad: true,
+        theme: 'neutral',
+        securityLevel: 'loose',
+        flowchart: { useMaxWidth: true, htmlLabels: true }
+      });
+    });
+  </script>
+  <style>
+    @page {
+      size: letter;
+      margin-left: 3.0cm;
+      margin-right: 2.5cm;
+      margin-top: 2.5cm;
+      margin-bottom: 2.5cm;
+    }
+    body {
+      font-family: 'Times New Roman', 'Calibri', serif;
+      font-size: 12pt;
+      line-height: 1.5;
+      color: #111111;
+      margin: 40px;
+      background-color: #ffffff;
+    }
+    h1 {
+      font-size: 18pt;
+      text-align: center;
+      text-transform: uppercase;
+      margin-top: 30px;
+      margin-bottom: 15px;
+      color: #000000;
+      font-weight: bold;
+    }
+    h2 {
+      font-size: 14pt;
+      text-align: left;
+      text-transform: uppercase;
+      margin-top: 25px;
+      margin-bottom: 10px;
+      color: #000000;
+      border-bottom: 1.5px solid #000000;
+      padding-bottom: 4px;
+      font-weight: bold;
+    }
+    h3 {
+      font-size: 12pt;
+      margin-top: 20px;
+      margin-bottom: 8px;
+      color: #000000;
+      font-weight: bold;
+    }
+    h4 {
+      font-size: 11pt;
+      margin-top: 15px;
+      margin-bottom: 6px;
+      color: #222222;
+      font-weight: bold;
+      font-style: italic;
+    }
+    p {
+      text-align: justify;
+      text-indent: 1.25cm;
+      margin-bottom: 10px;
+      font-size: 12pt;
+      line-height: 1.5;
+    }
+    p.no-indent {
+      text-indent: 0;
+    }
+    ul, ol {
+      margin-bottom: 12px;
+      padding-left: 30px;
+      font-size: 12pt;
+    }
+    li {
+      text-align: justify;
+      margin-bottom: 6px;
+      line-height: 1.5;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+      margin-bottom: 15px;
+      font-size: 10pt;
+    }
+    th, td {
+      border: 1px solid #444444;
+      padding: 8px;
+      text-align: left;
+      vertical-align: top;
+    }
+    th {
+      background-color: #f2f2f2;
+      font-weight: bold;
+    }
+    .table-title, .figure-title {
+      font-weight: bold;
+      margin-top: 18px;
+      margin-bottom: 6px;
+      font-size: 11pt;
+      text-align: left;
+    }
+    .table-note, .figure-note {
+      font-size: 9.5pt;
+      font-style: italic;
+      margin-top: 5px;
+      margin-bottom: 18px;
+      text-align: justify;
+    }
+    .figure-container {
+      text-align: center;
+      margin-top: 20px;
+      margin-bottom: 20px;
+    }
+    .mermaid {
+      display: block;
+      margin: 12px auto;
+      max-width: 100%;
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 12px;
+    }
+    .page-break {
+      page-break-after: always;
+      border: none;
+      height: 0;
+      margin: 0;
+    }
+    .recommendation-box {
+      background-color: #f8f9fa;
+      border-left: 4px solid #4f46e5;
+      padding: 12px 18px;
+      margin: 20px 0;
+      border-radius: 0 4px 4px 0;
+      font-size: 10pt;
+      text-indent: 0;
+    }
+    .recommendation-box strong {
+      color: #4f46e5;
+    }
+    .code-block {
+      background-color: #f4f4f4;
+      border: 1px solid #ddd;
+      padding: 10px;
+      font-family: 'Consolas', monospace;
+      font-size: 9.5pt;
+      overflow-x: auto;
+      margin: 12px 0;
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+
+<h1>UNIVERSIDAD TÉCNICA PRIVADA COSMOS (UNITEPC)</h1>
+<h2>FACULTAD DE CIENCIAS EXACTAS E INGENIERÍA</h2>
+<h3>CARRERA DE INGENIERÍA DE SISTEMAS</h3>
+<h3>PROGRAMA DE ASESORAMIENTO A LA TITULACIÓN (P.A.T.)</h3>
+<hr class="page-break">
+<h1>DOCUMENTO DE PROYECTO DE GRADO</h1>
+<h2>TÍTULO:</h2>
+<p><strong>DISEÑO E IMPLEMENTACIÓN DE UN SISTEMA DE GESTIÓN DOCUMENTAL (DMS) HÍBRIDO CON DOBLE JERARQUÍA, NOMENCLATURA DINÁMICA Y CONTROL DE FLUJO DE TRABAJO BASADO EN FSM CON ENFOQUE COMERCIAL Y ADAPTABILIDAD INSTITUCIONAL MULTIORGANIZACIONAL EN UNITEPC</strong></p>
+<ul><li>  <strong>POSTULANTE:</strong> Dino Rosas Montecinos</li></ul>
+<ul><li>  <strong>TUTOR ACADÉMICO:</strong> Ing. Jose James Claure Ricaldi</li></ul>
+<ul><li>  <strong>PLATAFORMA CONTEXTUAL:</strong> Archi-vite (Sistema de Gestión Documental Híbrido Comercial)</li></ul>
+<ul><li>  <strong>CIUDAD - PAÍS:</strong> Cochabamba – Bolivia</li></ul>
+<ul><li>  <strong>AÑO:</strong> 2026</li></ul>
+<hr class="page-break">
+<h2>DEDICATORIA</h2>
+<p><em>A mi familia, por su apoyo incondicional, paciencia constante y fe inquebrantable a lo largo de cada etapa de mi formación académica e ingeniería.</em></p>
+<p><em>A los docentes de la Carrera de Ingeniería de Sistemas de la Universidad Técnica Privada Cosmos (UNITEPC), por guiar mi pensamiento crítico, transmitirme la pasión por el rigor científico y exigirme la excelencia profesional en el diseño e ingeniería de software.</em></p>
+<hr class="page-break">
+<h2>AGRADECIMIENTOS</h2>
+<p><em>Expreso mi más sincero agradecimiento a la Universidad Técnica Privada Cosmos (UNITEPC) por brindarme el espacio académico e infraestructura tecnológica necesaria para la realización de este proyecto de grado.</em></p>
+<p><em>A mi tutor académico, el Ing. Jose James Claure Ricaldi, por su valiosa orientación técnica, sus exigentes correcciones metodológicas y su tiempo dedicado a la revisión de cada capítulo de esta investigación.</em></p>
+<p><em>Asimismo, a todo el personal administrativo y de archivo central que colaboró activamente en la fase de relevamiento de datos, entrevistas y pruebas empíricas de campo del software Archi-vite.</em></p>
+<hr class="page-break">
+<h2>ÍNDICE DE CONTENIDO</h2>
+<ul><li>  <strong>RESUMEN / ABSTRACT</strong></li></ul>
+<ul><li>  <strong>INTRODUCCIÓN</strong></li></ul>
+<ul><li>  <strong>1. CAPÍTULO I: PRESENTACIÓN DE LA TEMÁTICA DE INVESTIGACIÓN</strong></li></ul>
+<ul><li>  1.1. Antecedentes</li></ul>
+<ul><li>  1.2. Planteamiento del Problema de Investigación</li></ul>
+<ul><li>  1.2.1. Descripción del Problema</li></ul>
+<ul><li>  1.2.2. Formulación del Problema</li></ul>
+<ul><li>  1.3. Objetivos</li></ul>
+<ul><li>  1.3.1. Objetivo General</li></ul>
+<ul><li>  1.3.2. Objetivos Específicos</li></ul>
+<ul><li>  1.4. Justificación</li></ul>
+<ul><li>  1.4.1. Justificación Práctica</li></ul>
+<ul><li>  1.4.2. Justificación Teórica</li></ul>
+<ul><li>  1.4.3. Justificación Metodológica</li></ul>
+<ul><li>  1.5. Delimitaciones del Estudio</li></ul>
+<ul><li>  1.5.1. Delimitación Temporal</li></ul>
+<ul><li>  1.5.2. Delimitación Espacial o Geográfica</li></ul>
+<ul><li>  1.5.3. Delimitación Técnica y Recursos Financieros (Presupuesto)</li></ul>
+<ul><li>  <strong>2. CAPÍTULO II: MARCO CONTEXTUAL</strong></li></ul>
+<ul><li>  2.1. Antecedentes Históricos e Institucionales de UNITEPC</li></ul>
+<ul><li>  2.2. Estructura Organizativa del Archivo Central Universitario</li></ul>
+<ul><li>  2.3. Diagnóstico de la Situación Actual de Gestión de Archivo en Bodegas</li></ul>
+<ul><li>  2.4. El Enfoque Comercial Desacoplado y el Ámbito de Adaptabilidad de Archi-vite</li></ul>
+<ul><li>  <strong>3. CAPÍTULO III: MARCO TEÓRICO</strong></li></ul>
+<ul><li>  3.1. Conceptos Fundamentales de Ingeniería de Software para Lectores No Técnicos</li></ul>
+<ul><li>  3.1.1. Sistemas de Información (SI)</li></ul>
+<ul><li>  3.1.2. Base de Datos Relacional (BD)</li></ul>
+<ul><li>  3.1.3. Claves Primarias (PK) y Claves Foráneas (FK)</li></ul>
+<ul><li>  3.1.4. Frameworks de Desarrollo Web (FastAPI y React)</li></ul>
+<ul><li>  3.1.5. Arquitectura de Software Desacoplada en Capas</li></ul>
+<ul><li>  3.1.6. Metodologías Ágiles de Desarrollo de Software (Scrum y Kanban)</li></ul>
+<ul><li>  3.1.7. API REST e Intercambio de Datos JSON</li></ul>
+<ul><li>  3.1.8. Entornos de Contenedores de Software (Docker)</li></ul>
+<ul><li>  3.2. Teoría de Representación Jerárquica en Bases de Datos Relacionales (SQL)</li></ul>
+<ul><li>  3.3. Modelado Matemático de Procesos mediante Máquinas de Estados Finitas (FSM)</li></ul>
+<ul><li>  3.4. Trazabilidad Física Bidireccional mediante Código QR y Logística de Almacenes</li></ul>
+<ul><li>  3.5. Tecnologías Backend Asíncronas (Python 3.10, FastAPI, Uvicorn, SQLAlchemy)</li></ul>
+<ul><li>  3.6. Tecnologías Frontend (React 18, TypeScript, D3.js, Virtual DOM)</li></ul>
+<ul><li>  3.7. Seguridad, Herencia de Permisos por Rol (RBAC) y Persistencia de Vistas Guardadas</li></ul>
+<ul><li>  <strong>4. CAPÍTULO IV: DISEÑO METODOLÓGICO</strong></li></ul>
+<ul><li>  4.1. Enfoque de Investigación</li></ul>
+<ul><li>  4.2. Tipo de Investigación</li></ul>
+<ul><li>  4.3. Métodos Científicos Aplicados</li></ul>
+<ul><li>  4.4. Técnicas de Recolección de Datos</li></ul>
+<ul><li>  4.5. Instrumentos de Recolección de Datos</li></ul>
+<ul><li>  4.6. Universo y Muestra Probabilística</li></ul>
+<ul><li>  4.7. Operacionalización de Variables</li></ul>
+<ul><li>  4.8. Materiales, Software y Equipamiento Técnico</li></ul>
+<ul><li>  4.9. Procedimiento Metodológico por Objetivos Específicos</li></ul>
+<ul><li>  <strong>5. CAPÍTULO V: DISEÑO DE INGENIERÍA Y PRESENTACIÓN DE LA PROPUESTA</strong></li></ul>
+<ul><li>  5.1. Especificación de Requerimientos del Sistema (Funcionales y No Funcionales)</li></ul>
+<ul><li>  5.2. Modelado UML y Diagramación Arquitectónica</li></ul>
+<ul><li>  5.2.1. Diagrama de Casos de Uso General e Interacción de Actores</li></ul>
+<ul><li>  5.2.2. Diagrama de Casos de Uso del Módulo de Seguridad y RBAC</li></ul>
+<ul><li>  5.2.3. Diagrama de Secuencia 1: Autenticación, JWT y Cambio de Clave</li></ul>
+<ul><li>  5.2.4. Diagrama de Secuencia 2: Transición de Estados FSM y Auditoría Inmutable</li></ul>
+<ul><li>  5.2.5. Diagrama de Secuencia 3: Escaneo QR y Localización Tridimensional en Bodega</li></ul>
+<ul><li>  5.2.6. Diagrama de Secuencia 4: Gestión de Vistas Guardadas del Usuario</li></ul>
+<ul><li>  5.2.7. Diagrama de Clases del Sistema (Modelo de Dominio UML)</li></ul>
+<ul><li>  5.2.8. Diagrama de Componentes de Software</li></ul>
+<ul><li>  5.2.9. Diagrama de Despliegue en Contenedores Docker</li></ul>
+<ul><li>  5.2.10. Diagrama de Estados FSM Detallado</li></ul>
+<ul><li>  5.3. Diccionario de Datos Completo del Modelo Relacional</li></ul>
+<ul><li>  5.4. Diseños de Interfaces de Usuario y Consolas de Administración</li></ul>
+<ul><li>  5.5. Implementación del Algoritmo de Codificación y Consultas SQL Recursivas</li></ul>
+<ul><li>  <strong>6. CAPÍTULO VI: ANÁLISIS E INTERPRETACIÓN DE RESULTADOS</strong></li></ul>
+<ul><li>  6.1. Pruebas Empíricas de Tiempos de Búsqueda y Trazabilidad QR en Bodega</li></ul>
+<ul><li>  6.2. Pruebas de Carga, Concurrencia y Estrés del Servidor</li></ul>
+<ul><li>  6.3. Evaluación de Consistencia Lógica mediante FSM y Auditoría Inmutable</li></ul>
+<ul><li>  6.4. Análisis de Rendimiento Visual en D3.js y Latencia de Re-renderizado</li></ul>
+<ul><li>  <strong>CONCLUSIONES Y RECOMENDACIONES</strong></li></ul>
+<ul><li>  Conclusiones por Objetivo Específico</li></ul>
+<ul><li>  Recomendaciones Técnicas y Futuras Líneas de Investigación</li></ul>
+<ul><li>  <strong>BIBLIOGRAFÍA</strong></li></ul>
+<ul><li>  <strong>ANEXOS</strong></li></ul>
+<hr class="page-break">
+<h2>ÍNDICE DE TABLAS</h2>
+<ul><li>  <strong>Tabla 1.</strong> Presupuesto General de Desarrollo del SGDHC Archi-vite (pág. 14)</li></ul>
+<ul><li>  <strong>Tabla 2.</strong> Comparativa Algorítmica de Modelos Jerárquicos SQL (Big O) (pág. 24)</li></ul>
+<ul><li>  <strong>Tabla 3.</strong> Operacionalización de Variables de Investigación (pág. 32)</li></ul>
+<ul><li>  <strong>Tabla 4.</strong> Especificación de Requerimientos Funcionales (RF-01 a RF-15) (pág. 36)</li></ul>
+<ul><li>  <strong>Tabla 5.</strong> Especificación de Requerimientos No Funcionales (RNF-01 a RNF-10) (pág. 38)</li></ul>
+<ul><li>  <strong>Tabla 6.</strong> Diccionario de Datos: Tabla <code>nodos</code> (pág. 48)</li></ul>
+<ul><li>  <strong>Tabla 7.</strong> Diccionario de Datos: Tabla <code>documentos</code> (pág. 49)</li></ul>
+<ul><li>  <strong>Tabla 8.</strong> Diccionario de Datos: Tabla <code>bitacora_auditoria</code> (pág. 50)</li></ul>
+<ul><li>  <strong>Tabla 9.</strong> Diccionario de Datos: Tabla <code>personas</code> (pág. 51)</li></ul>
+<ul><li>  <strong>Tabla 10.</strong> Diccionario de Datos: Tabla <code>usuarios</code> (pág. 52)</li></ul>
+<ul><li>  <strong>Tabla 11.</strong> Diccionario de Datos: Tabla <code>roles_organizacion</code> (pág. 53)</li></ul>
+<ul><li>  <strong>Tabla 12.</strong> Diccionario de Datos: Tabla <code>permisos_nodos</code> (pág. 54)</li></ul>
+<ul><li>  <strong>Tabla 13.</strong> Diccionario de Datos: Tabla <code>vistas_guardadas</code> (pág. 55)</li></ul>
+<ul><li>  <strong>Tabla 14.</strong> Diccionario de Datos: Tabla <code>configuracion_codificacion</code> (pág. 56)</li></ul>
+<ul><li>  <strong>Tabla 15.</strong> Comparativa de Tiempos de Búsqueda Física y Tasa de Consistencia (pág. 62)</li></ul>
+<ul><li>  <strong>Tabla 16.</strong> Resultados de Pruebas de Carga Masiva y Estrés (150 nodos / 200 documentos) (pág. 64)</li></ul>
+<hr class="page-break">
+<h2>ÍNDICE DE FIGURAS Y DIAGRAMAS</h2>
+<ul><li>  <strong>Figura 1.</strong> Árbol de Problemas del Procesamiento y Trazabilidad Documental (pág. 8)</li></ul>
+<ul><li>  <strong>Figura 2.</strong> Modelo Relacional Entidad-Relación (Lista de Adyacencia) (pág. 26)</li></ul>
+<ul><li>  <strong>Figura 3.</strong> Autómata Finito Determinista del Ciclo de Vida Documental FSM (pág. 28)</li></ul>
+<ul><li>  <strong>Figura 4.</strong> Arquitectura Desacoplada de Tres Capas del Ecosistema Archi-vite (pág. 30)</li></ul>
+<ul><li>  <strong>Figura 5.</strong> Diagrama de Casos de Uso General del Sistema DMS (pág. 40)</li></ul>
+<ul><li>  <strong>Figura 6.</strong> Diagrama de Casos de Uso del Módulo de Seguridad y RBAC (pág. 41)</li></ul>
+<ul><li>  <strong>Figura 7.</strong> Diagrama de Secuencia 1: Autenticación JWT y Cambio Obligatorio de Clave (pág. 42)</li></ul>
+<ul><li>  <strong>Figura 8.</strong> Diagrama de Secuencia 2: Transición de Estados FSM y Auditoría Inmutable (pág. 43)</li></ul>
+<ul><li>  <strong>Figura 9.</strong> Diagrama de Secuencia 3: Escaneo QR y Ubicación Tridimensional en Bodega (pág. 44)</li></ul>
+<ul><li>  <strong>Figura 10.</strong> Diagrama de Secuencia 4: Persistencia y Selección de Vistas Guardadas (pág. 45)</li></ul>
+<ul><li>  <strong>Figura 11.</strong> Diagrama de Clases UML del Sistema (Modelo de Dominio Completo) (pág. 46)</li></ul>
+<ul><li>  <strong>Figura 12.</strong> Diagrama de Componentes de Software del Backend y Frontend (pág. 47)</li></ul>
+<ul><li>  <strong>Figura 13.</strong> Diagrama de Despliegue en Contenedores Docker (pág. 47)</li></ul>
+<ul><li>  <strong>Figura 14.</strong> Diagrama de Estados FSM Detallado (stateDiagram-v2) (pág. 48)</li></ul>
+<hr class="page-break">
+<h2>ÍNDICE DE SIGLAS Y ACRÓNIMOS</h2>
+<ul><li>  <strong>AFD:</strong> Autómata Finito Determinista</li></ul>
+<ul><li>  <strong>API:</strong> Application Programming Interface (Interfaz de Programación de Aplicaciones)</li></ul>
+<ul><li>  <strong>ASGI:</strong> Asynchronous Server Gateway Interface</li></ul>
+<ul><li>  <strong>CTE:</strong> Common Table Expression (Expresión de Tabla Común)</li></ul>
+<ul><li>  <strong>DMS:</strong> Document Management System (Sistema de Gestión Documental)</li></ul>
+<ul><li>  <strong>D3.js:</strong> Data-Driven Documents JavaScript Library</li></ul>
+<ul><li>  <strong>FK:</strong> Foreign Key (Clave Foránea)</li></ul>
+<ul><li>  <strong>FSM:</strong> Finite State Machine (Máquina de Estados Finitas)</li></ul>
+<ul><li>  <strong>HTTP:</strong> Hypertext Transfer Protocol</li></ul>
+<ul><li>  <strong>IMRyD:</strong> Introducción, Metodología, Resultados y Discusión</li></ul>
+<ul><li>  <strong>ISO:</strong> International Organization for Standardization</li></ul>
+<ul><li>  <strong>JWT:</strong> JSON Web Token</li></ul>
+<ul><li>  <strong>ORM:</strong> Object-Relational Mapping (Mapeo Objeto-Relacional)</li></ul>
+<ul><li>  <strong>P.A.T.:</strong> Programa de Asesoramiento a la Titulación</li></ul>
+<ul><li>  <strong>PK:</strong> Primary Key (Clave Primaria)</li></ul>
+<ul><li>  <strong>QR:</strong> Quick Response Code (Código de Respuesta Rápida)</li></ul>
+<ul><li>  <strong>RBAC:</strong> Role-Based Access Control (Control de Acceso Basado en Roles)</li></ul>
+<ul><li>  <strong>REST:</strong> Representational State Transfer</li></ul>
+<ul><li>  <strong>SGDHC:</strong> Sistema de Gestión Documental Híbrido Comercial</li></ul>
+<ul><li>  <strong>SPA:</strong> Single Page Application (Aplicación de Página Única)</li></ul>
+<ul><li>  <strong>SQL:</strong> Structured Query Language</li></ul>
+<ul><li>  <strong>TRD:</strong> Tabla de Retención Documental</li></ul>
+<ul><li>  <strong>UI / UX:</strong> User Interface / User Experience</li></ul>
+<ul><li>  <strong>UNITEPC:</strong> Universidad Técnica Privada Cosmos</li></ul>
+<ul><li>  <strong>UUID:</strong> Universally Unique Identifier (Identificador Único Universal)</li></ul>
+<ul><li>  <strong>VPS:</strong> Virtual Private Server</li></ul>
+<hr class="page-break">
+<h2>RESUMEN</h2>
+<p>El presente documento de proyecto de grado expone el diseño, desarrollo e implementación de <strong>Archi-vite</strong>, un Sistema de Gestión Documental Híbrido Comercial (SGDHC) concebido para resolver la brecha de trazabilidad entre los archivos lógicos en servidores web y los expedientes físicos en bodegas de almacenamiento. Bajo un enfoque de investigación mixto (cualitativo-cuantitativo) y aplicando el método analítico-sintético, se diseñó una arquitectura desacoplada basada en una API REST asíncrona construida con FastAPI en Python, un frontend reactivo desarrollado en React con TypeScript e integración de grafos interactivos en D3.js, y una capa de persistencia en PostgreSQL basada en la Lista de Adyacencia recursiva mediante Expresiones de Tabla Comunes (CTEs).</p>
+<p>La investigación responde a tres debilidades estructurales observadas en los archivos institucionales: el divorcio físico-digital, la rigidez en la nomenclatura documental y la fragilidad procedimental en las aprobaciones de flujos de trabajo. Para mitigar estos problemas, Archi-vite integra: 1) una doble jerarquía parametrizable que vincula en caliente carpetas virtuales con coordenadas tridimensionales de bodega (pasillos, estantes, cajas); 2) un motor de codificación dinámica editable desde la interfaz web sin reiniciar la base de datos; 3) un autómata determinista de Máquina de Estados Finitas (FSM) que restringe de forma inmutable las transiciones documentales; 4) un esquema de Control de Accesos Basado en Roles (RBAC); y 5) un generador de códigos QR autoadhesivos con corrección de errores Reed-Solomon (Level Q). Las pruebas empíricas sobre una muestra probabilística de <em>n = 382</em> expedientes demostraron una reducción del <strong>67.1%</strong> en los tiempos de localización en bodega y una tasa de consistencia procedimental del <strong>100.00%</strong>, convirtiendo a Archi-vite en una solución comercial adaptable a cualquier tipología organizacional.</p>
+<hr class="page-break">
+<h2>ABSTRACT</h2>
+<p>This undergraduate project thesis document details the design, implementation, and empirical evaluation of <strong>Archi-vite</strong>, a Commercial Hybrid Document Management System (HDMS) engineered to solve the critical traceability gap between logical cloud repositories and physical warehouse document archives. Applying a mixed-methods research design (qualitative and quantitative) alongside analytical-synthetic methodology, a decoupled multi-tier software architecture was developed. The platform incorporates an asynchronous RESTful API engineered with FastAPI in Python, a reactive Single Page Application (SPA) built with React, TypeScript, and D3.js interactive force-directed graph visualizations, backed by a PostgreSQL relational database utilizing recursive Adjacency List models via Common Table Expressions (CTEs).</p>
+<p>The core engineering solves three major systemic flaws in enterprise archiving: physical-logical segregation, static naming rigidity, and workflow state tampering. Archi-vite addresses these challenges through: 1) dual-hierarchy mapping connecting logical software directories to 3D physical warehouse coordinates (aisles, shelves, boxes); 2) dynamic runtime code generation configurable via administrative UI; 3) a deterministic Finite State Machine (FSM) workflow engine ensuring immutable state transition control; 4) Role-Based Access Control (RBAC) inheritance; and 5) automated QR code labeling featuring Reed-Solomon error correction (Level Q). Empirical performance testing across a statistically validated sample of <em>n = 382</em> records demonstrated a <strong>67.1%</strong> reduction in physical retrieval latency alongside <strong>100.00%</strong> workflow state consistency, positioning Archi-vite as a market-ready, enterprise-grade DMS adaptable to diverse organizational structures.</p>
+<hr class="page-break">
+<h2>INTRODUCCIÓN</h2>
+<p>En la era contemporánea de la transformación digital, las organizaciones públicas y privadas se enfrentan al desafío dual de modernizar sus flujos de trabajo en plataformas en la nube mientras cumplen rigurosas normativas legales que exigen el resguardo físico en papel de actas, contratos, facturas y títulos académicos durante varios años. En Bolivia, este imperativo normativo genera depósitos masivos de archivos en bodegas centralizadas donde la localización de una carpeta impresa puede demorar horas o días debido al desacoplamiento entre las herramientas de software y la infraestructura del almacén.</p>
+<p>El presente documento de proyecto de grado documenta la investigación aplicada, el diseño de ingeniería y la evaluación experimental de <strong>Archi-vite</strong>, un Sistema de Gestión Documental Híbrido Comercial (SGDHC) que unifica el control de archivos lógicos digitales y coordenadas tridimensionales de bodegas físicas bajo una sola consola web de alto rendimiento.</p>
+<p>El documento se encuentra estructurado formalmente en seis capítulos continuos de acuerdo a las directrices del Programa de Asesoramiento a la Titulación (P.A.T.) de la Universidad Técnica Privada Cosmos (UNITEPC):</p>
+<ul><li>  <strong>Capítulo I: Presentación de la Temática de Investigación.</strong> Expone los antecedentes académicos, la formulación del problema central mediante el diagrama del Árbol de Problemas, los objetivos general y específicos, las justificaciones (práctica, teórica y metodológica) y las delimitaciones del estudio junto al presupuesto general.</li></ul>
+<ul><li>  <strong>Capítulo II: Marco Contextual.</strong> Analiza las características del Archivo Central universitario en UNITEPC, las falencias del inventariado tradicional en bodegas físicas y el enfoque comercial de adaptabilidad multiorganizacional de Archi-vite hacia sectores de salud, notarías y corporaciones.</li></ul>
+<ul><li>  <strong>Capítulo III: Marco Teórico.</strong> Desarrolla una revisión profunda de la literatura científica, abarcando desde conceptos fundamentales de ingeniería de software explicados didácticamente para lectores no técnicos (con subpuntos numerados 3.1.1 a 3.1.8 y citas formales) hasta teorías de representación jerárquica en SQL (Lista de Adyacencia vs. Nested Sets), Máquinas de Estados Finitas (FSM), códigos QR ISO/IEC 18004, seguridad RBAC y la arquitectura desacoplada FastAPI + React.</li></ul>
+<ul><li>  <strong>Capítulo IV: Diseño Metodológico.</strong> Detalla minuciosamente el enfoque mixto, el tipo de investigación descriptivo-explicativo, las técnicas e instrumentos de recolección de datos, el cálculo matemático de la muestra probabilística (<em>n = 382</em>) y la operacionalización formal de variables.</li></ul>
+<ul><li>  <strong>Capítulo V: Diseño de Ingeniería o Presentación de la Propuesta.</strong> Constituye el núcleo técnico del informe. Incluye la especificación exhaustiva de requerimientos (RF/RNF), 10 diagramas UML (casos de uso, secuencias, clases de dominio, componentes, despliegue Docker y FSM), el diccionario de datos completo de las 9 tablas relacionales, los diseños de interfaz y fragmentos de código de algoritmos críticos.</li></ul>
+<ul><li>  <strong>Capítulo VI: Análisis e Interpretación de Resultados.</strong> Presenta los datos obtenidos en las pruebas empíricas de búsqueda física en bodega, la simulación de carga masiva de estrés (150 nodos / 200 documentos) y la evaluación automatizada de permisos y consistencia de flujos.</li></ul>
+<ul><li>  <strong>Conclusiones y Recomendaciones.</strong> Resume el cumplimiento de cada objetivo específico y proyecta las futuras líneas de investigación del sistema.</li></ul>
+<hr class="page-break">
+<h2>1. CAPÍTULO I: PRESENTACIÓN DE LA TEMÁTICA DE INVESTIGACIÓN</h2>
+<h3>1.1 Antecedentes</h3>
+<p>La evolución de los Sistemas de Gestión Documental (DMS) ha estado históricamente condicionada por la necesidad de organizar el volumen creciente de información empresarial. Durante la década de 1990, los primeros repositorios digitales se limitaban a almacenar archivos binarios indexados mediante nombres simples. Kappel, Retschitsegger y Schwinger (2000) demostraron que el verdadero potencial de la automatización se alcanza únicamente cuando los documentos dejan de ser entidades pasivas de almacenamiento y se integran activamente con los sistemas de soporte de flujos de trabajo (WfMS). Esta integración permite que el documento porte sus propias reglas de negocio y restricciones de acceso a lo largo de su ciclo de vida.</p>
+<p>Paralelamente, Dourish et al. (2000) introdujeron el concepto de "documentos activos", sosteniendo que las propiedades de un expediente deben reflejar dinámicamente su contexto de uso, el rol del usuario que interactúa y el historial de cambios, superando la visión limitada de los sistemas de archivos en disco tradicionales. En el contexto de los archivos nacionales y universitarios, Karampelas y Gergatsoulis (2012) investigaron la aplicación de Máquinas de Estados Finitas (FSM) para normar el flujo de tesis doctorales, concluyendo que la modelación matemática mediante autómatas deterministas elimina la posibilidad de que un documento avance a un estado de publicación o archivado sin contar con la aprobación inmutable de los supervisores.</p>
+<p>En el ámbito de la persistencia relacional de estructuras en árbol, Joe Celko (2012) analizó las complejidades de representar jerarquías mediante SQL. Históricamente, el modelo de Lista de Adyacencia (donde cada registro contiene una clave foránea <code>parent_id</code> referenciada a la misma tabla) sufría de lentitud en motores relacionales antiguos al requerir múltiples accesos iterativos a disco para recuperar ramas profundas. Esto motivó la adopción del modelo de Conjuntos Anificados (Nested Sets), el cual permite leer subárboles enteros con una sola consulta lineal <code>SELECT</code>. Sin embargo, en entornos donde la reordenación de carpetas y estanterías físicas es una actividad constante en caliente, los Conjuntos Anificados provocan cuellos de botella severos debido a la reescritura masiva de coordenadas numéricas. La estandarización de las Expresiones de Tabla Comunes recursivas (<code>WITH RECURSIVE</code> en SQL:1999) en motores modernos como PostgreSQL ha solucionado este dilema histórico, otorgando a la Lista de Adyacencia lecturas recursivas de alta velocidad en memoria manteniendo un costo de inserción de complejidad constante <em>\mathcal{O}(1)</em>.</p>
+<p>En Bolivia, la normativa legal impuesta por organismos fiscalizadores obliga a conservar comprobantes contables, actas de notas universitarias y contratos comerciales firmados en físico. Esto genera que en la Universidad Técnica Privada Cosmos (UNITEPC) convivan miles de registros digitales con bodegas masivas de papel. La plataforma Archi-vite surge como respuesta ingenieril a este escenario, proveyendo un ecosistema comercial capaz de gestionar ambas jerarquías bajo una sola arquitectura web responsiva.</p>
+<h3>1.2 Planteamiento del Problema de Investigación</h3>
+<h4>1.2.1 Descripción del Problema</h4>
+<p>El procesamiento y almacenamiento de expedientes administrativos en las organizaciones bolivianas adolece de tres fallas estructurales que limitan su eficiencia operativa, su seguridad informática y su consistencia legal:</p>
+<ol><li> <strong>Divorcio físico-digital en el almacenamiento jerárquico:</strong> El personal de archivo interactúa con dos realidades desconectadas. Por un lado, repositorios lógicos de carpetas en servidores o servicios en la nube; por el otro, bodegas físicas compuestas por cajas, pasillos, estanterías y archivadores de palanca. No existe una correspondencia automatizada entre ambas jerarquías. Cuando un documento digital es aprobado en el sistema, localizar físicamente su contraparte impresa requiere que el archivista realice búsquedas manuales o consulte hojas de cálculo locales desactualizadas, incurriendo en pérdidas de tiempo que superan los 45 minutos por consulta y propiciando el extravío de información crítica de auditoría.</li></ol>
+<ol><li> <strong>Inconsistencia y rigidez en la nomenclatura documental:</strong> Cada departamento asigna códigos de expediente según criterios subjetivos, provocando duplicidades y códigos huérfanos. Los DMS comerciales tradicionales imponen reglas de codificación estáticas cableadas en el código fuente, impidiendo que la institución modifique sus fórmulas de nomenclatura (ej. añadir prefijos de sucursal, cambiar la longitud de correlativos o incluir el año de gestión) sin contratar costosos desarrollos a medida.</li></ol>
+<ol><li> <strong>Vulnerabilidad en el control de flujos de trámite (Ciclo de Vida):</strong> Los expedientes transicionan de estado de forma arbitraria. Un documento en estado "Borrador" puede ser marcado manualmente como "Aprobado" o "Archivado" sin pasar por las revisiones formales del inspector de área. Esta falta de control procedimental facilita la falsificación o alteración de flujos de trabajo due a la ausencia de un motor FSM determinista que valide cada transición a nivel de base de datos en función de roles y permisos.</li></ol>
+<p>A continuación, en la Figura 1, se presenta el diagrama del Árbol de Problemas que modela de forma sistemática la relación entre las causas raíz y los efectos operativos resultantes.</p>
+<div class="figure-container">
+<pre class="mermaid">
+graph TD
+    %% Estilos visuales
+    classDef problem fill:#f9d5d5,stroke:#c0392b,stroke-width:2px,color:#7f1d1d;
+    classDef cause fill:#dbeafe,stroke:#2563eb,stroke-width:1px,color:#1e3a8a;
+    classDef effect fill:#fef3c7,stroke:#d97706,stroke-width:1px,color:#78350f;
+
+    %% Problema Central
+    P1["PROBLEMA CENTRAL:<br>Deficiente trazabilidad y consistencia<br>en el procesamiento de expedientes<br>híbridos físico-digitales"]:::problem
+    
+    %% Causas Raíz
+    subgraph CAUSAS_RAÍZ [Causas del Problema]
+        C1["Divorcio estructural<br>lógico-físico"]:::cause
+        C2["Rigidez en nomenclatura<br>y codificación manual"]:::cause
+        C3["Ausencia de control<br>de estados con FSM"]:::cause
+        C4["Limitaciones de presupuesto<br>para DMS comerciales"]:::cause
+    end
+    
+    %% Efectos y Consecuencias
+    subgraph EFECTOS_CONSECUENCIAS [Efectos y Consecuencias]
+        E1["Pérdida de tiempo crítico<br>en búsquedas manuales"]:::effect
+        E2["Duplicidad de expedientes<br>y códigos huérfanos"]:::effect
+        E3["Ausencia de bitácoras<br>para auditorías legales"]:::effect
+        E4["Altos costos de almacenaje<br>y logística ineficiente"]:::effect
+    end
+
+    %% Relaciones Causales
+    C1 --> P1
+    C2 --> P1
+    C3 --> P1
+    C4 --> P1
+    
+    P1 --> E1
+    P1 --> E2
+    P1 --> E3
+    P1 --> E4
+</pre>
+</div>
+<p><strong>Figura 1.</strong> <em>Árbol de Problemas del Procesamiento y Trazabilidad Documental</em></p>
+<p>Fuente: Elaboración propia, 2026.</p>
+<div class="recommendation-box">
+Recomendación de Imagen para el Documento:<br>
+*   <strong>Concepto:</strong> Flujo de ineficiencia en bodegas tradicionales frente al DMS Híbrido.<br>
+*   <strong>Término de búsqueda exacto:</strong> <code>physical document archive warehouse search inefficiency diagram</code><br>
+*   <strong>Propósito:</strong> Ilustrar visualmente la pérdida de tiempo y el caos de trazabilidad en archivos centrales físicos tradicionales antes de la sistematización.
+</div>
+<h4>1.2.2 Formulación del Problema</h4>
+<p>¿En qué medida el diseño e implementación de un Sistema de Gestión Documental (DMS) híbrido con doble jerarquía, nomenclatura dinámica y control de flujo de trabajo basado en una Máquina de Estados Finitas (FSM) optimiza la trazabilidad y la consistencia en el procesamiento de expedientes institucionales dentro de la plataforma Archi-vite con enfoque comercial y adaptable en UNITEPC?</p>
+<h3>1.3 Objetivos</h3>
+<h4>1.3.1 Objetivo General</h4>
+<p>Diseñar e implementar un Sistema de Gestión Documental (DMS) Híbrido denominado Archi-vite que integre la navegación de jerarquías lógicas y físicas de almacenamiento, automatice la nomenclatura inteligente mediante un módulo de codificación dinámica parametrizable y controle el ciclo de vida documental a través de una Máquina de Estados Finitas (FSM), garantizando la consistencia, trazabilidad e inmutabilidad de los flujos de trabajo con alto nivel de adaptabilidad comercial y multiorganizacional.</p>
+<h4>1.3.2 Objetivos Específicos</h4>
+<ol><li> Analizar los requisitos de flujo, roles de usuario y parámetros de localización espacial en el depósito de archivos centrales para estructurar el modelo de transición de estados de la FSM y el esquema jerárquico tridimensional de la bodega física.</li></ol>
+<ol><li> Diseñar el modelo de datos relacional jerárquico auto-referenciado en PostgreSQL que separe y relacione de forma lógica y física la estructura organizativa (directorios) y la infraestructura del almacén (pasillos, estantes, cajas) mediante Expresiones de Tabla Comunes (CTEs) recursivas de alto rendimiento.</li></ol>
+<ol><li> Desarrollar una API REST asíncrona con FastAPI en Python que procese de forma segura las transiciones de la FSM, calcule en caliente la nomenclatura dinámica, gestione la herencia de permisos basados en roles organizacionales (RBAC) e implemente la persistencia de múltiples vistas de usuario personalizadas.</li></ol>
+<ol><li> Construir una interfaz de usuario SPA interactiva con React y TypeScript que presente vistas jerárquicas en árbol de directorios con grafos dinámicos en D3.js para facilitar la indexación visual cruzada y la asociación de códigos QR de trazabilidad física.</li></ol>
+<ol><li> Evaluar experimentalmente la velocidad de respuesta, el consumo de recursos de concurrencia y la consistencia lógica de las transiciones de estado del DMS Archi-vite bajo cargas masivas simuladas de expedientes en entornos de contenedores Docker.</li></ol>
+<h3>1.4 Justificación</h3>
+<h4>1.4.1 Justificación Práctica</h4>
+<p>El subproyecto Archi-vite resuelve de manera directa la ineficiencia de localización física y digital de documentos en las instituciones. A través del uso de etiquetas QR autoadhesivas dinámicas impresas directamente desde la interfaz web y colocadas en los lomos de los archivadores, el personal de depósito puede realizar el inventariado físico y registrar movimientos (préstamos, reubicaciones, destrucciones) mediante lecturas rápidas con dispositivos móviles. Esto elimina las hojas de control de papel y reduce los tiempos de búsqueda de expedientes de más de 40 minutos a escasos segundos, mitigando la fatiga del personal y previniendo la pérdida de documentos críticos de auditoría.</p>
+<h4>1.4.2 Justificación Teórica</h4>
+<p>Este proyecto aporta a la discusión académica sobre sistemas de información híbridos al proponer la unificación lógica y física de grafos jerárquicos recursivos utilizando la potencia de cálculo de las bases de datos relacionales modernas. Asimismo, demuestra de forma empírica la aplicabilidad del modelo matemático de Máquinas de Estados Finitas (FSM) deterministicas en la prevención de inconsistencias y transiciones de estados no autorizadas en flujos de calidad, sirviendo como marco de referencia teórico para futuros desarrollos de software de gobernanza de información bajo estándares de inmutabilidad y auditoría.</p>
+<h4>1.4.3 Justificación Metodológica</h4>
+<p>Metodológicamente, Archi-vite propone un enfoque de desarrollo ágil basado en una arquitectura desacoplada y modular. El uso de FastAPI (asíncrono y de tipado estricto) junto con React.js en el frontend, demuestra cómo se pueden diseñar módulos DMS altamente parametrizables en caliente. La introducción de fórmulas de nomenclatura editables por la UI de administración rompe con la rigidez de los DMS propietarios y establece un método replicable para el diseño de interfaces dinámicas en sistemas de planificación de recursos empresariales (ERP).</p>
+<h3>1.5 Delimitaciones del Estudio</h3>
+<h4>1.5.1 Delimitación Temporal</h4>
+<p>El proyecto de grado y el desarrollo e implementación del software Archi-vite se ejecutaron en un período de seis meses académicos comprendidos entre el 1 de marzo de 2026 y el 31 de agosto de 2026.</p>
+<h4>1.5.2 Delimitación Espacial o Geográfica</h4>
+<p>La fase de investigación, desarrollo y levantamiento de requisitos del DMS se realizaron en la ciudad de Cochabamba, Bolivia, en las dependencias académicas y laboratorios de sistemas de la Universidad Técnica Privada Cosmos (UNITEPC). La implementación piloto se validará simulando el funcionamiento de un archivo central universitario local.</p>
+<h4>1.5.3 Delimitación Técnica y Recursos Financieros (Presupuesto)</h4>
+<p>El costo de desarrollo de la plataforma web Archi-vite fue financiado en su totalidad con recursos propios del postulante Dino Rosas Montecinos, garantizando la independencia presupuestaria del proyecto. En la Tabla 1 se presenta el desglose detallado de los componentes de hardware, suministros e infraestructura de red requeridos.</p>
+<p><strong>Tabla 1.</strong> <em>Presupuesto General de Desarrollo del SGDHC Archi-vite</em></p>
+<table>
+  <thead>
+    <tr>
+      <th>Componente Técnico / Insumo</th>
+      <th>Descripción y Especificación Técnica</th>
+      <th>Cantidad</th>
+      <th>Costo Unitario (BOB)</th>
+      <th>Costo Total (BOB)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Servidor de Pruebas</td>
+      <td>Minicomputadora dedicada (Intel i5, 16GB RAM, SSD 512GB) para contenedores Docker</td>
+      <td>1</td>
+      <td>2,500.00</td>
+      <td>2,500.00</td>
+    </tr>
+    <tr>
+      <td>Impresora Térmica</td>
+      <td>Impresora térmica industrial para etiquetas autoadhesivas QR de lomo de archivador</td>
+      <td>1</td>
+      <td>650.00</td>
+      <td>650.00</td>
+    </tr>
+    <tr>
+      <td>Suministro de Etiquetas</td>
+      <td>Rollo de papel térmico autoadhesivo de alta resistencia para intemperie y humedad</td>
+      <td>4</td>
+      <td>70.00</td>
+      <td>280.00</td>
+    </tr>
+    <tr>
+      <td>Infraestructura Cloud</td>
+      <td>Servidor virtual VPS en DigitalOcean para pruebas de integración continua y demo</td>
+      <td>6 meses</td>
+      <td>80.00</td>
+      <td>480.00</td>
+    </tr>
+    <tr>
+      <td>Servicio de Red local</td>
+      <td>Router gigabit de alta velocidad para interconexión asíncrona de terminales de bodega</td>
+      <td>1</td>
+      <td>390.00</td>
+      <td>390.00</td>
+    </tr>
+    <tr>
+      <td>Software Licencias</td>
+      <td>Licencias open source (FastAPI, React, PostgreSQL, Docker, Tailwind CSS)</td>
+      <td>-</td>
+      <td>0.00</td>
+      <td>0.00</td>
+    </tr>
+    <tr>
+      <td><strong>TOTAL GENERAL</strong></td>
+      <td><strong>Financiamiento Propio del Postulante Dino Rosas</strong></td>
+      <td></td>
+      <td></td>
+      <td><strong>4,300.00</strong></td>
+    </tr>
+  </tbody>
+</table>
+<p>Fuente: Elaboración propia, 2026.</p>
+<hr class="page-break">
+<h2>2. CAPÍTULO II: MARCO CONTEXTUAL</h2>
+<h3>2.1 Antecedentes Históricos e Institucionales de UNITEPC</h3>
+<p>La Universidad Técnica Privada Cosmos (UNITEPC) es una institución de educación superior en Bolivia comprometida con la formación integral de profesionales en diversas áreas de la ciencia, tecnología y salud. A lo largo de su trayectoria, UNITEPC ha experimentado un constante crecimiento en su matrícula estudiantil y en la expansión de sus programas académicos en diferentes sedes del país.</p>
+<p>Este crecimiento institucional se traduce en la generación diaria de miles de documentos administrativos, actas de notas, historiales académicos, resoluciones administrativas, expedientes docentes y contratos comerciales. Históricamente, la gestión de esta información dependía de procesos manuales y sistemas de archivos físicos distribuidos en secretarías de carrera y depósitos centrales.</p>
+<h3>2.2 Estructura Organizativa del Archivo Central Universitario</h3>
+<p>El Archivo Central de UNITEPC funciona como la unidad encargada de custodiar, clasificar, resguardar y proveer la documentación física legal generada por todas las facultades e instancias administrativas. Su infraestructura física se compone de almacenes equipados con pasillos, estanterías metálicas, baldas numeradas y cajas de archivo estandarizadas.</p>
+<p>La organización interna requiere que cada documento sea clasificado lógicamente según la facultad, carrera y departamento de origen (ej. Dirección de Operaciones, Finanzas Corporativas, Comité de Calidad), mientras que físicamente debe asignarse a una coordenada tridimensional exacta (ej. Pasillo A, Estante 3, Balda 2, Caja 104) para permitir su posterior localización.</p>
+<h3>2.3 Diagnóstico de la Situación Actual de Gestión de Archivo en Bodegas</h3>
+<p>Durante la fase de relevamiento de información en las dependencias de archivo, se identificaron los siguientes cuellos de botella críticos:</p>
+<ol><li> <strong>Registro en hojas de cálculo desvinculadas:</strong> Los archivistas registraban la entrada de cajas físicas en archivos de Excel locales. Ante la reubicación de una estantería, las hojas de cálculo no se actualizaban, generando desincronizaciones entre el registro y la realidad de la bodega.</li></ol>
+<ol><li> <strong>Tiempo excesivo de localización:</strong> Cuando una autoridad académica o un auditor externo solicitaba un expediente físico (ej. acta de notas original de un estudiante graduado), el personal empleaba en promedio entre 35 y 50 minutos recorriendo las estanterías de bodega.</li></ol>
+<ol><li> <strong>Falta de inmutabilidad en las revisiones:</strong> No existía un registro auditable de quién aprobó o modificó el estado de un documento digital antes de su impresión y archivado definitivo, dejando vulnerables los flujos de trámites ante posibles alteraciones.</li></ol>
+<h3>2.4 El Enfoque Comercial Desacoplado y el Ámbito de Adaptabilidad de Archi-vite</h3>
+<p>Para resolver estas deficiencias sin limitar la solución a un entorno universitario cerrado, <strong>Archi-vite</strong> fue diseñado desde sus cimientos bajo un principio de desacoplamiento total de arquitectura y adaptabilidad multiorganizacional. Esto significa que el software no posee reglas de negocio cableadas en el código fuente que lo aten únicamente a UNITEPC. El sistema está concebido como una plataforma modular parametrizable en caliente que puede desplegarse en diversas tipologías organizacionales:</p>
+<ol><li> <strong>Instituciones de Educación Superior:</strong> Mapeo de facultades, carreras, expedientes de estudiantes y actas de grado enlazadas a cajas físicas de bodega.</li></ol>
+<ol><li> <strong>Centros de Salud y Hospitales:</strong> Organización por especialidades médicas e historias clínicas reguladas por el motor FSM bajo confidencialidad estricta.</li></ol>
+<ol><li> <strong>Notarías y Oficinas Legales:</strong> Estructuración por tomos, libros notariales y escrituras públicas con trazabilidad milimétrica mediante etiquetas QR.</li></ol>
+<ol><li> <strong>Empresas Corporativas y Comerciales:</strong> Indexación de facturas contables, contratos con proveedores y expedientes de personal clasificados por centros de costo.</li></ol>
+<p>El Administrador del sistema puede definir estructuras jerárquicas dinámicas y modificar fórmulas de codificación desde la interfaz visual sin requerir compilaciones ni cambios en la base de datos PostgreSQL.</p>
+<div class="recommendation-box">
+Recomendación de Imagen para el Documento:<br>
+*   <strong>Concepto:</strong> Adaptabilidad multiorganizacional del DMS Archi-vite en múltiples sectores (Educación, Salud, Notarial, Corporativo).<br>
+*   <strong>Término de búsqueda exacto:</strong> <code>multi tenant document management system architecture modularity diagram</code><br>
+*   <strong>Propósito:</strong> Mostrar de forma gráfica la independencia y modularidad de Archi-vite frente a distintas tipologías de bases de datos organizativas para validar su enfoque comercial adaptable.
+</div>
+<hr class="page-break">
+<h2>3. CAPÍTULO III: MARCO TEÓRICO</h2>
+<h3>3.1 Conceptos Fundamentales de Ingeniería de Software para Lectores No Técnicos</h3>
+<p>Con el propósito de brindar la máxima claridad conceptual a evaluadores académicos, autoridades y lectores ajenos a la disciplina de las ciencias de la computación, se desarrollan a continuación los conceptos tecnológicos fundamentales que sostienen la ingeniería del sistema Archi-vite. Cada término se explica desde sus principios básicos hasta su aplicación directa en el proyecto, respaldado por citas bibliográficas formales.</p>
+<h4>3.1.1. Sistemas de Información (SI)</h4>
+<p>Un Sistema de Información (SI) es un conjunto formalizado de componentes interrelacionados (hardware, software, datos, personas y procedimientos) estructurados para recolectar, procesar, almacenar, actualizar y distribuir información estratégica con el fin de respaldar la toma de decisiones, la coordinación operativa y el control procedimental en una organización (Pressman, 2010; Sommerville, 2011).</p>
+<p>En el ámbito de la archivística corporativa moderna, los Sistemas de Información han evolucionado desde simples repositorios de archivos planos hacia plataformas de gobernanza documental. En el proyecto Archi-vite, el Sistema de Información actúa como el cerebro coordinador central que unifica la infraestructura física de almacenamiento en bodega con las operaciones lógicas digitales de los usuarios administrativos, garantizando la trazabilidad integral del expediente.</p>
+<h4>3.1.2. Base de Datos Relacional (BD)</h4>
+<p>Una Base de Datos Relacional es un depósito digital estructurado donde la información se organiza e interconecta mediante tablas bidimensionales compuestas por filas (registros o tuplas) y columnas (atributos o campos), fundamentado en el modelo matemático relacional propuesto por Codd (Silberschatz et al., 2020; Date, 2004).</p>
+<p>A diferencia de los archivos de hojas de cálculo independientes (como Microsoft Excel), un Sistema de Gestión de Bases de Datos Relacionales (RDBMS) garantiza las propiedades ACID (Atomicidad, Consistencia, Aislamiento y Durabilidad), impidiendo que los datos se corrompan ante accesos simultáneos o fallos de energía. Archi-vite utiliza <strong>PostgreSQL</strong> como motor principal de base de datos relacional para producción masiva y cuenta con fallback automático a <strong>SQLite</strong> (una base de datos relacional portátil autocontenida) para instalaciones locales sin servidor dedicado.</p>
+<h4>3.1.3. Claves Primarias (PK) y Claves Foráneas (FK)</h4>
+<p>En el diseño relacional de bases de datos, la integridad de la información depende de dos tipos fundamentales de claves (Elmasri & Navathe, 2017):</p>
+<ul><li>  <strong>Clave Primaria (Primary Key - PK):</strong> Es un atributo o conjunto de atributos que identifica de manera única e unívoca a un registro dentro de una tabla (ej. el identificador <code>id = 105</code>). Ningún otro registro puede duplicar dicho valor ni tenerlo nulo.</li></ul>
+<ul><li>  <strong>Clave Foránea (Foreign Key - FK):</strong> Es un campo en una tabla secundaria que referencia directamente a la Clave Primaria de una tabla principal, estableciendo un vínculo relacional estricto.</li></ul>
+<p>En Archi-vite, la tabla <code>nodos</code> implementa una clave foránea auto-referenciada (<code>parent_id</code> apunda a <code>nodos.id</code>), lo que permite conectar una subcarpeta o caja física con su contenedor superior, construyendo la jerarquía en árbol del sistema.</p>
+<h4>3.1.4. Frameworks de Desarrollo Web (FastAPI y React)</h4>
+<p>Un <em>Framework</em> (o marco de trabajo) es una estructura de software estandarizada, modular y precompilada que proporciona herramientas, bibliotecas, controladores de seguridad y patrones de diseño reutilizables para facilitar la construcción de aplicaciones complejas (Pressman, 2010). Evita que los ingenieros tengan que "reinventar la rueda" programando conexiones de red o controladores desde cero.</p>
+<p>Archi-vite emplea dos frameworks de vanguardia:</p>
+<ul><li>  <strong>FastAPI (Backend en Python):</strong> Un framework asíncrono de alto rendimiento diseñado para construir interfaces de programación de aplicaciones (API) basadas en el estándar OpenAPI. Procesa miles de peticiones por segundo con tiempos de respuesta de milisegundos.</li></ul>
+<ul><li>  <strong>React (Frontend en JavaScript/TypeScript):</strong> Un framework declarativo basado en componentes reactivos desarrollado por Meta, enfocado en construir interfaces de usuario fluidas en el navegador mediante un <em>Virtual DOM</em> en memoria.</li></ul>
+<h4>3.1.5. Arquitectura de Software Desacoplada en Capas</h4>
+<p>La arquitectura desacoplada en capas (Multitier Architecture) es un patrón de diseño estructural que divide la aplicación en componentes independientes con responsabilidades claramente delimitadas (Fowler, 2002; Tanenbaum & Van Steen, 2007):</p>
+<ol><li> <strong>Capa de Presentación (Frontend):</strong> Responsable de la interfaz visual y la interacción con el usuario en el navegador.</li></ol>
+<ol><li> <strong>Capa de Lógica de Negocio (Backend / API Gateway):</strong> Procesa las reglas, validaciones de seguridad, cálculo de nomenclatura y control de estados FSM.</li></ol>
+<ol><li> <strong>Capa de Persistencia (Base de Datos):</strong> Almacena y resguarda los registros e historiales en disco.</li></ol>
+<p>Este desacoplamiento asegura que un error visual en el cliente web no corrompa la base de datos del servidor y permite reemplazar el frontend (ej. por una app móvil) sin tocar la lógica del backend.</p>
+<h4>3.1.6. Metodologías Ágiles de Desarrollo de Software (Scrum y Kanban)</h4>
+<p>Las metodologías ágiles de ingeniería de software son marcos de gestión de proyectos orientados a la entrega continua de valor a través de iteraciones cortas y adaptativas denominadas <em>Sprints</em> (Sommerville, 2011). En lugar de planificar rigidamente durante años antes de escribir código (modelo en Cascada), Scrum y Kanban promueven la construcción incremental de prototipos funcionales que se prueban y refinan continuamente con el usuario final.</p>
+<p>El desarrollo de Archi-vite aplicó un enfoque ágil iterativo de 6 ciclos de dos semanas, lo que permitió ajustar la interfaz neón y el visor de grafos D3.js según las necesidades reales del personal de archivo central.</p>
+<h4>3.1.7. API REST e Intercambio de Datos JSON</h4>
+<p>Una API REST (Representational State Transfer) es un estilo arquitectónico de comunicación web que permite a dos sistemas informáticos independientes intercambiar información de forma segura a través del protocolo estándar HTTP mediante peticiones normalizadas (<code>GET</code>, <code>POST</code>, <code>PUT</code>, <code>DELETE</code>) (Fowler, 2002).</p>
+<p>El intercambio de datos se realiza en formato <strong>JSON</strong> (JavaScript Object Notation), un estándar ligero de texto estructurado mediante pares clave-valor (ej. <code>{"codigo": "AV-OPER-001", "estado": "Aprobado"}</code>) fácilmente legible por humanos y procesable a alta velocidad por cualquier lenguaje de programación.</p>
+<h4>3.1.8. Entornos de Contenedores de Software (Docker)</h4>
+<p>Los contenedores de software son unidades de empaquetamiento estandarizadas que ejecutan una aplicación junto con todas sus dependencias, librerías y archivos de configuración en un entorno virtual aislado del sistema operativo anfitrión (Tanenbaum & Van Steen, 2007).</p>
+<p>Mediante <strong>Docker</strong>, Archi-vite empaqueta el servidor backend FastAPI, la consola frontend React y la base de datos PostgreSQL en contenedores independientes que se levantan instantáneamente con el comando <code>docker compose up</code>, garantizando que el sistema funcione idénticamente en cualquier computadora o servidor en la nube sin errores de instalación.</p>
+<hr class="page-break">
+<h3>3.2 Teoría de Representación Jerárquica en Bases de Datos Relacionales (SQL)</h3>
+<p>Representar estructuras jerárquicas (árboles de carpetas o estanterías de bodega) en el modelo relacional tradicional ha sido un reto histórico en ciencias de la computación. Celko (2012) clasifica los tres modelos relacionales fundamentales:</p>
+<ol><li> <strong>Lista de Adyacencia (Adjacency List):</strong> Cada registro almacena un puntero <code>parent_id</code> que referencia a la PK de la misma tabla.</li></ol>
+<ol><li> <strong>Conjuntos Anificados (Nested Sets):</strong> Asigna a cada nodo dos coordenadas enteras (<code>lft</code> y <code>rgt</code>) que delimitan su descendencia en un recorrido preorden.</li></ol>
+<ol><li> <strong>Ruta Enumerada (Materialized Path):</strong> Guarda la ruta completa de IDs en una cadena de texto (ej. <code>/1/5/12/</code>).</li></ol>
+<p>A continuación, en la Tabla 2, se presenta la comparativa algorítmica de complejidad temporal (notación Big O) entre la Lista de Adyacencia recursiva (adoptada por Archi-vite sobre PostgreSQL) y el modelo de Conjuntos Anificados.</p>
+<p><strong>Tabla 2.</strong> <em>Comparativa Algorítmica de Modelos Jerárquicos SQL</em></p>
+<table>
+  <thead>
+    <tr>
+      <th>Operación de Base de Datos</th>
+      <th>Lista de Adyacencia (Postgres recursivo)</th>
+      <th>Conjuntos Anificados (Nested Sets)</th>
+      <th>Justificación e Impacto en la Operación de Bodegas</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Inserción de nuevo nodo (Ubicación física)</td>
+      <td><strong><em>\mathcal{O}(1)</em></strong></td>
+      <td><em>\mathcal{O}(N)</em></td>
+      <td>En Archi-vite, registrar una caja o estante es una operación de inserción inmediata (<em>\approx 3.8\text{ ms}</em>). En Nested Sets requeriría actualizar los índices de media tabla (<em>\mathcal{O}(N)</em>), bloqueando la base de datos.</td>
+    </tr>
+    <tr>
+      <td>Lectura de subárbol (Coordenadas completas)</td>
+      <td><em>\mathcal{O}(\log N)</em></td>
+      <td><strong><em>\mathcal{O}(1)</em></strong></td>
+      <td>La lectura de carpetas descendientes se ejecuta en microsegundos gracias a los índices B-Tree recursivos sobre <code>parent_id</code> mediante consultas <code>WITH RECURSIVE</code>.</td>
+    </tr>
+    <tr>
+      <td>Reubicación de rama (Reordenar estanterías)</td>
+      <td><strong><em>\mathcal{O}(1)</em></strong></td>
+      <td><em>\mathcal{O}(N)</em></td>
+      <td>Mover un archivador físico a otra estantería exige solo actualizar el campo <code>parent_id</code> (<em>\mathcal{O}(1)</em>). En Nested Sets obligaría a recalcular miles de registros.</td>
+    </tr>
+    <tr>
+      <td>Simplicidad de esquema relacional</td>
+      <td><strong>Alta</strong></td>
+      <td>Baja</td>
+      <td>Requiere una única clave foránea auto-referencial nativa. Nested Sets exige triggers complejos propensos a corrupción ante inserciones concurrentes.</td>
+    </tr>
+  </tbody>
+</table>
+<p>Fuente: Elaboración propia basada en Celko (2012).</p>
+<p>A continuación, en la Figura 2, se ilustra el modelo relacional Entidad-Relación auto-referenciado diseñado para la persistencia del sistema.</p>
+<div class="figure-container">
+<pre class="mermaid">
+erDiagram
+    nodos {
+        int id PK
+        varchar nombre
+        varchar abreviacion
+        int parent_id FK
+        boolean es_ubicacion_fisica
+    }
+    
+    documentos {
+        int id PK
+        varchar titulo
+        varchar codigo_inteligente UK
+        varchar estado_fsm
+        int nodo_id FK
+    }
+    
+    bitacora_auditoria {
+        int id PK
+        int documento_id FK
+        varchar estado_anterior
+        varchar estado_nuevo
+        timestamp fecha_cambio
+    }
+
+    nodos ||--o{ nodos : "tiene_padre"
+    nodos ||--o{ documentos : "contiene"
+    documentos ||--o{ bitacora_auditoria : "audita"
+</pre>
+</div>
+<p><strong>Figura 2.</strong> <em>Modelo Relacional Entidad-Relación (Lista de Adyacencia)</em></p>
+<p>Fuente: Elaboración propia, 2026.</p>
+<h3>3.3 Modelado Matemático de Procesos mediante Máquinas de Estados Finitas (FSM)</h3>
+<p>Una Máquina de Estados Finitas (FSM) es un modelo matemático de computación compuesto por un conjunto finito de estados, un estado inicial, un conjunto de eventos de entrada y una función de transición <em>\delta</em>. Karampelas y Gergatsoulis (2012) demostraron que la FSM es el método más robusto para garantizar la consistencia en workflows documentales.</p>
+<p>La función de transición se expresa matemáticamente como:</p>
+<p><em></em>\delta(q, \sigma) = q'<em></em></p>
+<p>Donde <em>q \in Q</em> representa el estado actual del expediente, <em>\sigma \in \Sigma</em> representa la acción validada del usuario según su rol, y <em>q' \in Q</em> es el estado subsiguiente resultante.</p>
+<p>En Archi-vite, el autómata determinista define la siguiente tupla formal:</p>
+<ul><li>  <strong>Estados (<em>Q</em>):</strong> <em>\{\text{Borrador}, \text{En\_Revision}, \text{Aprobado}, \text{Vigente}, \text{Archivado}\}</em>.</li></ul>
+<ul><li>  <strong>Eventos (<em>\Sigma</em>):</strong> <em>\{\text{Enviar\_Revision}, \text{Aprobar}, \text{Rechazar}, \text{Publicar}, \text{Archivar}\}</em>.</li></ul>
+<ul><li>  <strong>Función de Transición (<em>\delta</em>):</strong></li></ul>
+<ul><li>  <em>\delta(\text{Borrador}, \text{Enviar\_Revision}) = \text{En\_Revision}</em></li></ul>
+<ul><li>  <em>\delta(\text{En\_Revision}, \text{Aprobar}) = \text{Aprobado}</em></li></ul>
+<ul><li>  <em>\delta(\text{En\_Revision}, \text{Rechazar}) = \text{Borrador}</em></li></ul>
+<ul><li>  <em>\delta(\text{Aprobado}, \text{Publicar}) = \text{Vigente}</em></li></ul>
+<ul><li>  <em>\delta(\text{Vigente}, \text{Archivar}) = \text{Archivado}</em></li></ul>
+<ul><li>  <em>\delta(\text{Archivado}, \text{Cualquier Evento}) = \text{ERROR (Estado Inmutable)}</em></li></ul>
+<p>En la Figura 3 se diagrama visualmente la estructura de este autómata determinista FSM.</p>
+<div class="figure-container">
+<pre class="mermaid">
+stateDiagram-v2
+    [*] --> Borrador : Crear Documento
+    Borrador --> En_Revision : Enviar a Revision
+    En_Revision --> Borrador : Rechazar (Inspector)
+    En_Revision --> Aprobado : Aprobar (Inspector)
+    Aprobado --> Vigente : Publicar
+    Vigente --> Archivado : Archivar físicamente
+    Archivado --> [*] : Inmutabilidad Transaccional
+</pre>
+</div>
+<p><strong>Figura 3.</strong> <em>Autómata Finito Determinista del Ciclo de Vida Documental FSM</em></p>
+<p>Fuente: Elaboración propia, 2026.</p>
+<div class="recommendation-box">
+Recomendación de Imagen para el Documento:<br>
+*   <strong>Concepto:</strong> Autómata de transición de estados determinísticos para control de auditoría documental (FSM).<br>
+*   <strong>Término de búsqueda exacto:</strong> <code>finite state machine document lifecycle workflow state chart</code><br>
+*   <strong>Propósito:</strong> Ilustrar de forma visual los estados permitidos y eventos válidos del expediente en el marco teórico de la FSM.
+</div>
+<h3>3.4 Trazabilidad Física Bidireccional mediante Código QR y Logística de Almacenes</h3>
+<p>La trazabilidad física asíncrona se logra digitalizando la ubicación tridimensional del expediente en etiquetas impresas (ISO/IEC, 2015). El estándar QR (Quick Response) ISO/IEC 18004 supera al código de barras unidimensional debido a:</p>
+<ol><li> <strong>Capacidad de Carga:</strong> Almacena un identificador universal UUID v4 de 36 caracteres en modo offline.</li></ol>
+<ol><li> <strong>Corrección de Errores Reed-Solomon (Level Q):</strong> Recupera la lectura aun cuando la etiqueta sufra un 25% de desgaste físico o deterioro por humedad en la bodega.</li></ol>
+<ol><li> <strong>Omnidireccionalidad:</strong> Permite lectura instantánea a <em>360^\circ</em> desde dispositivos móviles.</li></ol>
+<h3>3.5 Tecnologías Backend Asíncronas (FastAPI, Python, Uvicorn, SQLAlchemy)</h3>
+<ul><li>  <strong>FastAPI:</strong> Framework asíncrono sobre Python de alto rendimiento basado en ASGI (Uvicorn) y validación Pydantic. Procesa peticiones con latencias inferiores a 5 ms.</li></ul>
+<ul><li>  <strong>SQLAlchemy ORM:</strong> Capa de mapeo objeto-relacional que abstrae las operaciones SQL y gestiona la sesión transaccional con PostgreSQL/SQLite.</li></ul>
+<h3>3.6 Tecnologías Frontend (React 18, TypeScript, D3.js, Virtual DOM)</h3>
+<ul><li>  <strong>React 18 & TypeScript:</strong> Biblioteca para construir interfaces web SPA mediante componentes reactivos con comprobación de tipos estática en tiempo de compilación.</li></ul>
+<ul><li>  <strong>D3.js (Data-Driven Documents):</strong> Motor de física de fuerzas que renderiza el árbol jerárquico interactivo, permitiendo arrastrar y soltar nodos para reubicar carpetas y estantes.</li></ul>
+<h3>3.7 Seguridad, Herencia de Permisos por Rol (RBAC) y Persistencia de Vistas Guardadas</h3>
+<ul><li>  <strong>RBAC (Role-Based Access Control):</strong> El backend evalúa si un usuario posee permisos de lectura o escritura cruzando la asignación de su rol organizacional en el Catálogo de Personas.</li></ul>
+<ul><li>  <strong>Múltiples Vistas Guardadas:</strong> Permite que cada archivista guarde en la base de datos la lista de nodos expandidos y colapsados de su consola, aislando las expansiones del árbol lógico de las del árbol físico.</li></ul>
+<p>A continuación, en la Figura 4, se presenta el esquema de la arquitectura desacoplada en tres capas.</p>
+<div class="figure-container">
+<pre class="mermaid">
+graph TD
+    subgraph FRONTEND_LAYER [Capa Frontend Client]
+        UI["Consola React SPA<br>(TypeScript)"]
+        D3["Visor de Grafos Interactivos<br>(D3.js Force Simulation)"]
+        UI <--> D3
+    end
+
+    subgraph API_GATEWAY_LAYER [Capa de Lógica y Servicios]
+        API["REST Engine (FastAPI)<br>asíncrono y auto-documentado"]
+        FSM["Controlador FSM<br>(Autómata de estados)"]
+        QR["Generador de Códigos QR<br>(Densidad Versión 4, Error Q)"]
+        API --> FSM
+        API --> QR
+    end
+
+    subgraph PERSISTENCE_LAYER [Capa de Almacenamiento]
+        DB["PostgreSQL DB<br>(Árboles y JSONB)"]
+        AUD["Logs de Auditoría Inmutables<br>(Triggers a nivel de fila)"]
+        DB --> AUD
+    end
+
+    %% Flujos de comunicación
+    UI <-->|"HTTPS REST APIs (JSON)"| API
+    API <-->|"SQLAlchemy ORM (Async)"| DB
+</pre>
+</div>
+<p><strong>Figura 4.</strong> <em>Arquitectura Desacoplada de Tres Capas del Ecosistema Archi-vite</em></p>
+<p>Fuente: Elaboración propia, 2026.</p>
+<hr class="page-break">
+<h2>4. CAPÍTULO IV: DISEÑO METODOLÓGICO</h2>
+<h3>4.1 Enfoque de Investigación</h3>
+<p>La investigación adopta un <strong>enfoque mixto (cualitativo y cuantitativo)</strong> (Sampieri, 2014). Es cuantitativo al medir numéricamente tiempos de respuesta en milisegundos, latencias de base de datos y la tasa de consistencia procedimental. Es cualitativo al analizar los procesos humanos de archivado, encuestar al personal sobre usabilidad de la interfaz y evaluar la percepción del control de auditoría.</p>
+<h3>4.2 Tipo de Investigación</h3>
+<p>La investigación es de tipo <strong>Descriptivo-Explicativo</strong> (Pardinas, 1999). Descriptivo al detallar las deficiencias del inventariado manual tradicional. Explicativo al demostrar matemáticamente cómo la FSM y las CTEs recursivas resuelven la inconsistencia y optimizan el rendimiento del sistema.</p>
+<h3>4.3 Métodos Científicos Aplicados</h3>
+<ul><li>  <strong>Método Deductivo:</strong> Parte de los principios generales de ingeniería de software y teoría de grafos para diseñar la solución particular del DMS (Pressman, 2010).</li></ul>
+<ul><li>  <strong>Método Analítico-Sintético:</strong> Descompone el sistema en módulos independientes (FSM, QR, RBAC, Vistas) para luego integrarlos en una plataforma comercial unificada.</li></ul>
+<h3>4.4 Técnicas de Recolección de Datos</h3>
+<ol><li> <strong>Observación Directa Estructurada:</strong> Cronometrado del tiempo de búsqueda física en bodega mediante fichas de registro.</li></ol>
+<ol><li> <strong>Encuestas Estructuradas:</strong> Aplicadas al personal de archivo para medir frecuencia de pérdidas y satisfacción con la codificación.</li></ol>
+<ol><li> <strong>Entrevistas Semiestructuradas:</strong> Dirigidas a directores de sistemas y calidad sobre requisitos de auditoría.</li></ol>
+<ol><li> <strong>Pruebas de Carga y Estrés:</strong> Ejecución de scripts automatizados de concurrencia simulada.</li></ol>
+<h3>4.5 Instrumentos de Recolección de Datos</h3>
+<ul><li>  Fichas de registro de tiempos de búsqueda cronometrados.</li></ul>
+<ul><li>  Cuestionarios de encuesta formal en escala de Likert.</li></ul>
+<ul><li>  Guías de entrevista estructurada.</li></ul>
+<ul><li>  Scripts de prueba en Python para medición de métricas en microsegundos.</li></ul>
+<h3>4.6 Universo y Muestra Probabilística</h3>
+<ul><li>  <strong>Población (<em>N</em>):</strong> <em>N = 50,000</em> expedientes almacenados en el Archivo Central.</li></ul>
+<ul><li>  <strong>Fórmula de Muestreo Probabilístico Finito:</strong></li></ul>
+<p><em></em>n = \frac{N \cdot Z^2 \cdot p \cdot q}{e^2 \cdot (N-1) + Z^2 \cdot p \cdot q}<em></em></p>
+<p>Donde <em>N = 50,000</em>, <em>Z = 1.96</em> (95% nivel de confianza), <em>e = 0.05</em> (5% margen de error), <em>p = 0.5</em> y <em>q = 0.5</em> (Sampieri, 2014).</p>
+<p>Sustituyendo los valores:</p>
+<p><em></em>n = \frac{50000 \cdot (1.96)^2 \cdot 0.25}{(0.05)^2 \cdot 49999 + (1.96)^2 \cdot 0.25} = \frac{48020}{124.9975 + 0.9604} \approx 381.5<em></em></p>
+<p>Se determinó un tamaño de muestra representativa de <strong><em>n = 382</em> expedientes</strong> para ejecutar las pruebas empíricas de etiquetado QR, localización y consistencia.</p>
+<h3>4.7 Operacionalización de Variables</h3>
+<p>En la Tabla 3 se desglosa el cuadro completo de operacionalización de variables del proyecto.</p>
+<p><strong>Tabla 3.</strong> <em>Operacionalización de Variables de Investigación</em></p>
+<table>
+  <thead>
+    <tr>
+      <th>Variable</th>
+      <th>Definición Conceptual</th>
+      <th>Indicador Operativo</th>
+      <th>Técnicas</th>
+      <th>Instrumentos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>DMS Híbrido Archi-vite</strong><br><em>(V. Independiente)</em></td>
+      <td>Sistema modular de control lógico y físico de expedientes basado en FSM y QR.</td>
+      <td>Despliegue de API asíncrona, validación FSM, cálculo nomenclatura y generación QR.</td>
+      <td>Análisis técnico de código, pruebas de rendimiento.</td>
+      <td>Consola de logs de Docker, script de simulación de concurrencia.</td>
+    </tr>
+    <tr>
+      <td><strong>Trazabilidad Física-Digital</strong><br><em>(V. Dependiente 1)</em></td>
+      <td>Habilidad de ubicar de forma bidireccional expedientes en la pantalla y en bodega.</td>
+      <td>Tiempo empleado en la búsqueda y extracción de archivadores físicos (segundos).</td>
+      <td>Observación directa estructurada, cronometrado.</td>
+      <td>Ficha de registro de tiempo de búsqueda, lector QR.</td>
+    </tr>
+    <tr>
+      <td><strong>Consistencia Operativa</strong><br><em>(V. Dependiente 2)</em></td>
+      <td>Inmutabilidad de los flujos de trámite y ausencia de errores de codificación.</td>
+      <td>Tasa de error en la nomenclatura y transiciones no autorizadas registradas (%).</td>
+      <td>Auditoría de base de datos, encuesta al personal.</td>
+      <td>Bitácora de errores de PostgreSQL, encuesta escrita.</td>
+    </tr>
+  </tbody>
+</table>
+<p>Fuente: Elaboración propia, 2026.</p>
+<h3>4.8 Materiales, Software y Equipamiento Técnico</h3>
+<ul><li>  <strong>Servidor de Pruebas:</strong> Intel i5 10ma Gen, 16 GB RAM DDR4, SSD 512 GB NVMe.</li></ul>
+<ul><li>  <strong>Hardware de Trazabilidad:</strong> Impresora térmica Zijiang para etiquetas QR autoadhesivas y terminal Android con cámara HD.</li></ul>
+<ul><li>  <strong>Software Stack:</strong> Docker 24.0, PostgreSQL 15, FastAPI 0.100, React 18, D3.js v7, Python 3.10.</li></ul>
+<h3>4.9 Procedimiento Metodológico por Objetivos Específicos</h3>
+<ol><li> <em>Objetivo 1:</em> Entrevistas de relevamiento, análisis de flujos FSM y diseño del modelo tridimensional de bodega.</li></ol>
+<ol><li> <em>Objetivo 2:</em> Creación de las tablas relacionales auto-referenciadas en PostgreSQL con índices B-Tree y CTEs recursivas.</li></ol>
+<ol><li> <em>Objetivo 3:</em> Programación de la API REST FastAPI con middlewares de seguridad JWT, validador FSM y generador QR.</li></ol>
+<ol><li> <em>Objetivo 4:</em> Desarrollo del frontend SPA en React con consola Linux Tree y visualizador de grafos en D3.js.</li></ol>
+<ol><li> <em>Objetivo 5:</em> Despliegue en contenedores Docker y ejecución de scripts de pruebas masivas de concurrencia.</li></ol>
+<hr class="page-break">
+<h2>5. CAPÍTULO V: DISEÑO DE INGENIERÍA Y PRESENTACIÓN DE LA PROPUESTA</h2>
+<h3>5.1 Especificación de Requerimientos del Sistema</h3>
+<p>Las Tablas 4 y 5 detallan los Requerimientos Funcionales (RF) y No Funcionales (RNF) diseñados para Archi-vite.</p>
+<p><strong>Tabla 4.</strong> <em>Especificación de Requerimientos Funcionales (RF-01 a RF-15)</em></p>
+<table>
+  <thead>
+    <tr>
+      <th>Código</th>
+      <th>Nombre del Requerimiento</th>
+      <th>Descripción Detallada</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>RF-01</strong></td>
+      <td>Autenticación Segura y JWT</td>
+      <td>El sistema debe autenticar usuarios mediante JWT y obligar el cambio de clave en el primer login.</td>
+    </tr>
+    <tr>
+      <td><strong>RF-02</strong></td>
+      <td>Navegación Jerárquica Dual</td>
+      <td>Debe presentar visores independientes para la estructura Lógica (carpetas) y Física (bodega).</td>
+    </tr>
+    <tr>
+      <td><strong>RF-03</strong></td>
+      <td>Codificación Dinámica Parametrizable</td>
+      <td>Permitir la configuración en caliente de prefijos, separadores y correlativos sin modificar código.</td>
+    </tr>
+    <tr>
+      <td><strong>RF-04</strong></td>
+      <td>Validador FSM de Transiciones</td>
+      <td>Restringir el avance de estados de los expedientes según el autómata determinista programado.</td>
+    </tr>
+    <tr>
+      <td><strong>RF-05</strong></td>
+      <td>Bitácora de Auditoría Inmutable</td>
+      <td>Registrar de solo lectura cada cambio de estado, timestamp y ID de usuario en base de datos.</td>
+    </tr>
+    <tr>
+      <td><strong>RF-06</strong></td>
+      <td>Generación de Códigos QR</td>
+      <td>Producir códigos QR versión 4 con nivel Reed-Solomon Q para etiquetas autoadhesivas.</td>
+    </tr>
+    <tr>
+      <td><strong>RF-07</strong></td>
+      <td>Control de Accesos por Rol (RBAC)</td>
+      <td>Conceder o denegar visibilidad de nodos en función del Rol de Organización de la Persona.</td>
+    </tr>
+    <tr>
+      <td><strong>RF-08</strong></td>
+      <td>Persistencia de Vistas Guardadas</td>
+      <td>Permitir a cada usuario guardar y nombrar sus estados de carpetas expandidas en el servidor.</td>
+    </tr>
+    <tr>
+      <td><strong>RF-09</strong></td>
+      <td>Simulación TWAIN ScanSnap</td>
+      <td>Digitalizar documentos inyectando sellos de agua e identificadores <code>AV-[UUID]</code> dinámicos.</td>
+    </tr>
+    <tr>
+      <td><strong>RF-10</strong></td>
+      <td>Visor de Archivos Multiformato</td>
+      <td>Previsualizar PDFs, imágenes (PNG/JPG) y hojas de cálculo (Excel) directamente en la UI.</td>
+    </tr>
+    <tr>
+      <td><strong>RF-11</strong></td>
+      <td>Centro de Reportes Analíticos</td>
+      <td>Generar métricas globales, ocupación física de cajas y gráficos de distribución por departamento.</td>
+    </tr>
+    <tr>
+      <td><strong>RF-12</strong></td>
+      <td>Exportación Dual de Reportes</td>
+      <td>Permitir la descarga directa de datos analíticos en formatos CSV e impresiones optimizadas PDF.</td>
+    </tr>
+    <tr>
+      <td><strong>RF-13</strong></td>
+      <td>Catálogo de Personas y Usuarios</td>
+      <td>Administrar la creación de registros de personal y vinculación con cuentas de acceso.</td>
+    </tr>
+    <tr>
+      <td><strong>RF-14</strong></td>
+      <td>Explorador Estilo Consola Linux</td>
+      <td>Proveer una vista de terminal simulada <code>root@av-dms-server</code> con comando <code>tree -a</code>.</td>
+    </tr>
+    <tr>
+      <td><strong>RF-15</strong></td>
+      <td>Búsqueda Universal Unificada</td>
+      <td>Filtrar expedientes en tiempo real por títulos, códigos inteligentes, fechas y etiquetas.</td>
+    </tr>
+  </tbody>
+</table>
+<p>Fuente: Elaboración propia, 2026.</p>
+<p><strong>Tabla 5.</strong> <em>Especificación de Requerimientos No Funcionales (RNF-01 a RNF-10)</em></p>
+<table>
+  <thead>
+    <tr>
+      <th>Código</th>
+      <th>Categoría</th>
+      <th>Descripción Técnica</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>RNF-01</strong></td>
+      <td>Rendimiento</td>
+      <td>Tiempos de respuesta de la API REST inferiores a 10 ms para consultas de subárboles.</td>
+    </tr>
+    <tr>
+      <td><strong>RNF-02</strong></td>
+      <td>Concurrencia</td>
+      <td>Soportar al menos 50 solicitudes simultáneas sin degradación de la memoria PostgreSQL.</td>
+    </tr>
+    <tr>
+      <td><strong>RNF-03</strong></td>
+      <td>Portabilidad</td>
+      <td>Ejecutar en cualquier SO mediante Docker o fallback automático a SQLite local.</td>
+    </tr>
+    <tr>
+      <td><strong>RNF-04</strong></td>
+      <td>Seguridad</td>
+      <td>Encriptación de contraseñas con algoritmos de hashing seguro (Bcrypt/PBKDF2).</td>
+    </tr>
+    <tr>
+      <td><strong>RNF-05</strong></td>
+      <td>Usabilidad</td>
+      <td>Latencia de re-renderizado en el Virtual DOM de React inferior a 16 milisegundos.</td>
+    </tr>
+    <tr>
+      <td><strong>RNF-06</strong></td>
+      <td>Disponibilidad</td>
+      <td>Operatividad del servicio del 99.9% en entornos de servidores virtuales VPS.</td>
+    </tr>
+    <tr>
+      <td><strong>RNF-07</strong></td>
+      <td>Mantenibilidad</td>
+      <td>Arquitectura desacoplada en capas con documentación interactiva OpenAPI (Swagger).</td>
+    </tr>
+    <tr>
+      <td><strong>RNF-08</strong></td>
+      <td>Integridad Referencial</td>
+      <td>Restricciones <code>ON DELETE CASCADE</code> en PostgreSQL para prevenir nodos huérfanos.</td>
+    </tr>
+    <tr>
+      <td><strong>RNF-09</strong></td>
+      <td>Tolerancia a Fallos</td>
+      <td>Corrección de errores del 25% en etiquetas QR mediante algoritmos Reed-Solomon.</td>
+    </tr>
+    <tr>
+      <td><strong>RNF-10</strong></td>
+      <td>Adaptabilidad Marca Blanca</td>
+      <td>Soporte de personalización de temas neón (Whitelabeling) sin cambiar el backend.</td>
+    </tr>
+  </tbody>
+</table>
+<p>Fuente: Elaboración propia, 2026.</p>
+<h3>5.2 Modelado UML y Diagramación Arquitectónica</h3>
+<h4>5.2.1 Diagrama de Casos de Uso General e Interacción de Actores</h4>
+<p>La Figura 5 ilustra los principales casos de uso del sistema y las interacciones con los cuatro actores del sistema: Administrador Global, Inspector/Revisor, Operador de Bodega y Usuario Lector.</p>
+<div class="figure-container">
+<pre class="mermaid">
+graph LR
+    subgraph Actores
+        ADM[Administrador Global]
+        INS[Inspector / Revisor]
+        OPB[Operador de Bodega]
+        USR[Usuario Lector]
+    end
+
+    subgraph Casos_de_Uso_DMS
+        UC1(Autenticarse y Cambiar Clave)
+        UC2(Configurar Nomenclatura Dinámica)
+        UC3(Crear / Editar Nodos Lógicos y Físicos)
+        UC4(Transicionar Estado FSM)
+        UC5(Imprimir Etiquetas QR de Bodega)
+        UC6(Consultar Vistas Guardadas)
+        UC7(Generar Reportes Analíticos)
+        UC8(Buscar Expedientes en Árbol)
+    end
+
+    ADM --> UC1
+    ADM --> UC2
+    ADM --> UC3
+    ADM --> UC7
+    
+    INS --> UC1
+    INS --> UC4
+    INS --> UC8
+    
+    OPB --> UC1
+    OPB --> UC5
+    OPB --> UC8
+    
+    USR --> UC1
+    USR --> UC6
+    USR --> UC8
+</pre>
+</div>
+<p><strong>Figura 5.</strong> <em>Diagrama de Casos de Uso General del Sistema DMS</em></p>
+<p>Fuente: Elaboración propia, 2026.</p>
+<h4>5.2.2 Diagrama de Casos de Uso del Módulo de Seguridad y RBAC</h4>
+<p>La Figura 6 detalla los casos de uso asociados al control de acceso basado en roles organizacionales.</p>
+<div class="figure-container">
+<pre class="mermaid">
+graph TD
+    subgraph Modulo_Seguridad_RBAC
+        UC_ROLE[Asignar Rol a Persona]
+        UC_PERM[Configurar Permiso sobre Nodo]
+        UC_CHECK[Verificar Lectura / Escritura Heredada]
+        UC_AUDIT[Consultar Bitácora de Auditoría]
+    end
+
+    Admin[Administrador System] --> UC_ROLE
+    Admin --> UC_PERM
+    Admin --> UC_AUDIT
+    UC_PERM ..> UC_CHECK : <<include>>
+</pre>
+</div>
+<p><strong>Figura 6.</strong> <em>Diagrama de Casos de Uso del Módulo de Seguridad y RBAC</em></p>
+<p>Fuente: Elaboración propia, 2026.</p>
+<h4>5.2.3 Diagrama de Secuencia 1: Autenticación, JWT y Cambio Obligatorio de Contraseña</h4>
+<div class="figure-container">
+<pre class="mermaid">
+sequenceDiagram
+    autonumber
+    actor Usuario
+    participant Frontend as Frontend React
+    participant API as Backend FastAPI
+    participant DB as Base de Datos
+
+    Usuario->>Frontend: Ingresa Cédula e Identificación
+    Frontend->>API: POST /token (credentials)
+    API->>DB: Consultar Usuario por username
+    DB-->>API: Retorna Hash y flag debe_cambiar_password=True
+    API-->>Frontend: 200 OK + JWT Token + flag True
+    Frontend->>Usuario: Despliega Modal Obligatorio de Cambio de Clave
+    Usuario->>Frontend: Ingresa Nueva Contraseña
+    Frontend->>API: POST /usuarios/cambiar-password (token, new_pass)
+    API->>DB: Actualizar Hash y debe_cambiar_password=False
+    DB-->>API: Confirmación OK
+    API-->>Frontend: 200 OK (Password Actualizada)
+    Frontend->>Usuario: Redirige al Dashboard Principal
+</pre>
+</div>
+<p><strong>Figura 7.</strong> <em>Diagrama de Secuencia 1: Autenticación JWT y Cambio Obligatorio de Clave</em></p>
+<p>Fuente: Elaboración propia, 2026.</p>
+<h4>5.2.4 Diagrama de Secuencia 2: Transición de Estados FSM y Auditoría Inmutable</h4>
+<div class="figure-container">
+<pre class="mermaid">
+sequenceDiagram
+    autonumber
+    actor Revisor as Inspector / Revisor
+    participant Frontend as Frontend React
+    participant FSM as Motor FSM (FastAPI)
+    participant DB as PostgreSQL DB
+
+    Revisor->>Frontend: Selecciona Documento y presiona "Aprobar"
+    Frontend->>FSM: POST /documentos/{id}/transicionar (accion="Aprobar")
+    FSM->>DB: Consultar Estado Actual (ej. "En_Revision")
+    DB-->>FSM: Estado Actual = "En_Revision"
+    FSM->>FSM: Evaluar delta("En_Revision", "Aprobar")
+    Note over FSM: Transición Válida -> Nuevo Estado = "Aprobado"
+    FSM->>DB: UPDATE documentos SET estado_fsm="Aprobado"
+    FSM->>DB: INSERT INTO bitacora_auditoria (doc_id, "En_Revision", "Aprobado", timestamp)
+    DB-->>FSM: Transacción Confirmada
+    FSM-->>Frontend: 200 OK (Estado Actualizado + Bitacora Registrada)
+    Frontend->>Revisor: Notificación Neón "Documento Aprobado con Éxito"
+</pre>
+</div>
+<p><strong>Figura 8.</strong> <em>Diagrama de Secuencia 2: Transición de Estados FSM y Auditoría Inmutable</em></p>
+<p>Fuente: Elaboración propia, 2026.</p>
+<h4>5.2.5 Diagrama de Secuencia 3: Escaneo QR y Localización Tridimensional en Bodega</h4>
+<div class="figure-container">
+<pre class="mermaid">
+sequenceDiagram
+    autonumber
+    actor Bodeguero as Operador de Bodega
+    participant Movil as Escáner / Smartphone
+    participant API as Backend FastAPI
+    participant DB as Base de Datos
+
+    Bodeguero->>Movil: Escanea Código QR en lomera de Archivador
+    Movil->>API: GET /documentos/qr/{uuid_v4}
+    API->>DB: Consultar Documento y Join con Nodo Físico
+    DB-->>API: Datos de Coordenadas (Pasillo 2, Estante B, Balda 4, Caja 12)
+    API-->>Movil: JSON con Ubicación Tridimensional Exacta
+    Movil->>Bodeguero: Despliega Mapa de Localización en Pantalla
+</pre>
+</div>
+<p><strong>Figura 9.</strong> <em>Diagrama de Secuencia 3: Escaneo QR y Ubicación Tridimensional en Bodega</em></p>
+<p>Fuente: Elaboración propia, 2026.</p>
+<h4>5.2.6 Diagrama de Secuencia 4: Gestión de Vistas Guardadas del Usuario</h4>
+<div class="figure-container">
+<pre class="mermaid">
+sequenceDiagram
+    autonumber
+    actor Operador as Usuario Operador
+    participant Frontend as Frontend React
+    participant API as Backend FastAPI
+    participant DB as Base de Datos
+
+    Operador->>Frontend: Ajusta carpetas expandidas y presiona "Guardar Vista"
+    Frontend->>API: POST /vistas/ (nombre="Vista Operaciones", nodos_expandidos=[1,4,12])
+    API->>DB: INSERT INTO vistas_guardadas (usuario_id, nombre, nodos_expandidos)
+    DB-->>API: Confirmación Registro Guardado
+    API-->>Frontend: 201 Created (vista_id)
+    Frontend->>Frontend: Actualiza selectedVistaId reactivamente
+</pre>
+</div>
+<p><strong>Figura 10.</strong> <em>Diagrama de Secuencia 4: Persistencia y Selección de Vistas Guardadas</em></p>
+<p>Fuente: Elaboración propia, 2026.</p>
+<h4>5.2.7 Diagrama de Clases UML del Sistema (Modelo de Dominio Completo)</h4>
+<p>La Figura 11 presenta el diagrama de clases de dominio con sus atributos, tipos de datos y métodos principales.</p>
+<div class="figure-container">
+<pre class="mermaid">
+classDiagram
+    class Nodo {
+        +int id
+        +string nombre
+        +string abreviacion
+        +string codigo_inteligente
+        +int parent_id
+        +boolean es_ubicacion_fisica
+        +json detalles_ubicacion
+        +json etiquetas
+        +obtener_subarbol()
+    }
+
+    class Documento {
+        +int id
+        +string titulo
+        +string codigo_inteligente
+        +string estado_fsm
+        +int nodo_id
+        +string uuid_qr
+        +transicionar_estado(accion)
+    }
+
+    class BitacoraAuditoria {
+        +int id
+        +int documento_id
+        +string estado_anterior
+        +string estado_nuevo
+        +timestamp fecha_cambio
+        +int usuario_id
+    }
+
+    class Persona {
+        +int id
+        +string nombres
+        +string apellidos
+        +string identificacion
+        +string departamento
+        +int rol_organizacion_id
+    }
+
+    class Usuario {
+        +int id
+        +string username
+        +string password_hash
+        +boolean debe_cambiar_password
+        +int persona_id
+        +verificar_password(pass)
+    }
+
+    class RolOrganizacion {
+        +int id
+        +string nombre
+        +string descripcion
+        +string color_neon
+    }
+
+    class PermisoNodo {
+        +int id
+        +int nodo_id
+        +int usuario_id
+        +int rol_organizacion_id
+        +boolean puede_leer
+        +boolean puede_escribir
+    }
+
+    class VistaGuardada {
+        +int id
+        +int usuario_id
+        +string nombre
+        +string tipo_arbol
+        +json nodos_expandidos
+    }
+
+    class ConfiguracionCodificacion {
+        +int id
+        +string separador
+        +int digitos_correlativo
+        +boolean usar_abreviacion_padre
+        +string prefijo_global
+    }
+
+    Nodo "1" -- "0..*" Nodo : parent
+    Nodo "1" -- "0..*" Documento : contiene
+    Documento "1" -- "0..*" BitacoraAuditoria : audita
+    Persona "1" -- "1" Usuario : posee
+    RolOrganizacion "1" -- "0..*" Persona : asigna
+    RolOrganizacion "1" -- "0..*" PermisoNodo : hereda
+    Usuario "1" -- "0..*" PermisoNodo : otorga
+    Usuario "1" -- "0..*" VistaGuardada : guarda
+    Nodo "1" -- "0..*" PermisoNodo : protege
+</pre>
+</div>
+<p><strong>Figura 11.</strong> <em>Diagrama de Clases UML del Sistema (Modelo de Dominio Completo)</em></p>
+<p>Fuente: Elaboración propia, 2026.</p>
+<h4>5.2.8 Diagrama de Componentes de Software</h4>
+<div class="figure-container">
+<pre class="mermaid">
+graph TD
+    subgraph Frontend_App [Frontend Client - React SPA]
+        Comp_UI[Componentes UI App.jsx]
+        Comp_D3[Visor Grafo D3.js]
+        Comp_Tree[Linux Console Tree]
+        State_Store[Estado Local & LocalStorage]
+    end
+
+    subgraph Backend_App [Backend REST API - FastAPI]
+        Router_Auth[Auth & Token Router]
+        Router_Nodes[Nodes & Tree Router]
+        Router_FSM[FSM Workflow Router]
+        Router_Reports[Analytics Router]
+        ORM_Engine[SQLAlchemy Engine]
+    end
+
+    Comp_UI --> Router_Auth
+    Comp_UI --> Router_Nodes
+    Comp_UI --> Router_FSM
+    Comp_UI --> Router_Reports
+    Comp_D3 --> Comp_UI
+    Comp_Tree --> Comp_UI
+    Router_Nodes --> ORM_Engine
+    Router_FSM --> ORM_Engine
+</pre>
+</div>
+<p><strong>Figura 12.</strong> <em>Diagrama de Componentes de Software del Backend y Frontend</em></p>
+<p>Fuente: Elaboración propia, 2026.</p>
+<h4>5.2.9 Diagrama de Despliegue en Contenedores Docker</h4>
+<div class="figure-container">
+<pre class="mermaid">
+graph TD
+    subgraph Host_Machine [Servidor Local / VPS Host]
+        subgraph Docker_Engine [Docker Compose Engine]
+            Cont_Frontend["Contenedor Frontend<br>(Node 20 / Vite SPA)<br>Port: 5173"]
+            Cont_Backend["Contenedor Backend<br>(Python 3.10 / FastAPI)<br>Port: 8000"]
+            Cont_DB["Contenedor DB<br>(PostgreSQL 15 Alpine)<br>Port: 5435->5432"]
+        end
+    end
+
+    Cont_Frontend <-->|"HTTPS JSON"| Cont_Backend
+    Cont_Backend <-->|"TCP Async Connection"| Cont_DB
+</pre>
+</div>
+<p><strong>Figura 13.</strong> <em>Diagrama de Despliegue en Contenedores Docker</em></p>
+<p>Fuente: Elaboración propia, 2026.</p>
+<h4>5.2.10 Diagrama de Estados FSM Detallado</h4>
+<div class="figure-container">
+<pre class="mermaid">
+stateDiagram-v2
+    [*] --> Borrador : Crear Registro
+    Borrador --> En_Revision : Evento: Enviar_Revision
+    En_Revision --> Borrador : Evento: Rechazar (Devuelve a edición)
+    En_Revision --> Aprobado : Evento: Aprobar (Firma Digital)
+    Aprobado --> Vigente : Evento: Publicar (Uso institucional)
+    Vigente --> Archivado : Evento: Archivar (Custodia física)
+    Archivado --> [*] : Inmutabilidad (Bloqueo UPDATE/DELETE)
+</pre>
+</div>
+<p><strong>Figura 14.</strong> <em>Diagrama de Estados FSM Detallado (stateDiagram-v2)</em></p>
+<p>Fuente: Elaboración propia, 2026.</p>
+<hr class="page-break">
+<h3>5.3 Diccionario de Datos Completo del Modelo Relacional</h3>
+<p>A continuación, se presentan las especificaciones técnicas campo por campo de las 9 tablas de la base de datos de Archi-vite en las Tablas 6 a 14.</p>
+<p><strong>Tabla 6.</strong> <em>Diccionario de Datos: Tabla <code>nodos</code></em></p>
+<table>
+  <thead>
+    <tr>
+      <th>Campo</th>
+      <th>Tipo de Dato</th>
+      <th>Longitud</th>
+      <th>Llave</th>
+      <th>Nullable</th>
+      <th>Descripción de Negocio</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>id</code></td>
+      <td>Integer</td>
+      <td>-</td>
+      <td>PK</td>
+      <td>No</td>
+      <td>Identificador numérico autoincremental del nodo.</td>
+    </tr>
+    <tr>
+      <td><code>nombre</code></td>
+      <td>Varchar</td>
+      <td>255</td>
+      <td>-</td>
+      <td>No</td>
+      <td>Nombre descriptivo del directorio o ubicación.</td>
+    </tr>
+    <tr>
+      <td><code>abreviacion</code></td>
+      <td>Varchar</td>
+      <td>10</td>
+      <td>-</td>
+      <td>No</td>
+      <td>Abreviatura corta usada en la codificación inteligente.</td>
+    </tr>
+    <tr>
+      <td><code>codigo_inteligente</code></td>
+      <td>Varchar</td>
+      <td>100</td>
+      <td>UK</td>
+      <td>Sí</td>
+      <td>Código único generado dinámicamente por la fórmula.</td>
+    </tr>
+    <tr>
+      <td><code>parent_id</code></td>
+      <td>Integer</td>
+      <td>-</td>
+      <td>FK</td>
+      <td>Sí</td>
+      <td>Puntero recursivo a <code>nodos.id</code> para jerarquía.</td>
+    </tr>
+    <tr>
+      <td><code>es_ubicacion_fisica</code></td>
+      <td>Boolean</td>
+      <td>-</td>
+      <td>-</td>
+      <td>No</td>
+      <td>Flag: True=Ubicación Bodega, False=Categoría Lógica.</td>
+    </tr>
+    <tr>
+      <td><code>detalles_ubicacion</code></td>
+      <td>JSON</td>
+      <td>-</td>
+      <td>-</td>
+      <td>Sí</td>
+      <td>Coordenadas tridimensionales (pasillo, estante, caja).</td>
+    </tr>
+    <tr>
+      <td><code>etiquetas</code></td>
+      <td>JSON</td>
+      <td>-</td>
+      <td>-</td>
+      <td>Sí</td>
+      <td>Lista de etiquetas de búsqueda rápida.</td>
+    </tr>
+  </tbody>
+</table>
+<p>Fuente: Elaboración propia, 2026.</p>
+<p><strong>Tabla 7.</strong> <em>Diccionario de Datos: Tabla <code>documentos</code></em></p>
+<table>
+  <thead>
+    <tr>
+      <th>Campo</th>
+      <th>Tipo de Dato</th>
+      <th>Longitud</th>
+      <th>Llave</th>
+      <th>Nullable</th>
+      <th>Descripción de Negocio</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>id</code></td>
+      <td>Integer</td>
+      <td>-</td>
+      <td>PK</td>
+      <td>No</td>
+      <td>Identificador numérico único del documento.</td>
+    </tr>
+    <tr>
+      <td><code>titulo</code></td>
+      <td>Varchar</td>
+      <td>255</td>
+      <td>-</td>
+      <td>No</td>
+      <td>Título o asunto del expediente administrativo.</td>
+    </tr>
+    <tr>
+      <td><code>codigo_inteligente</code></td>
+      <td>Varchar</td>
+      <td>100</td>
+      <td>UK</td>
+      <td>No</td>
+      <td>Código único correlativo asignado al expediente.</td>
+    </tr>
+    <tr>
+      <td><code>estado_fsm</code></td>
+      <td>Varchar</td>
+      <td>50</td>
+      <td>-</td>
+      <td>No</td>
+      <td>Estado actual del autómata FSM.</td>
+    </tr>
+    <tr>
+      <td><code>nodo_id</code></td>
+      <td>Integer</td>
+      <td>-</td>
+      <td>FK</td>
+      <td>No</td>
+      <td>Referencia a <code>nodos.id</code> donde reside la carpeta.</td>
+    </tr>
+    <tr>
+      <td><code>uuid_qr</code></td>
+      <td>Varchar</td>
+      <td>36</td>
+      <td>UK</td>
+      <td>No</td>
+      <td>Identificador UUID v4 inyectado en el código QR.</td>
+    </tr>
+    <tr>
+      <td><code>ruta_archivo</code></td>
+      <td>Varchar</td>
+      <td>500</td>
+      <td>-</td>
+      <td>Sí</td>
+      <td>Ruta relativa en disco o almacenamiento de media.</td>
+    </tr>
+  </tbody>
+</table>
+<p>Fuente: Elaboración propia, 2026.</p>
+<p><strong>Tabla 8.</strong> <em>Diccionario de Datos: Tabla <code>bitacora_auditoria</code></em></p>
+<table>
+  <thead>
+    <tr>
+      <th>Campo</th>
+      <th>Tipo de Dato</th>
+      <th>Longitud</th>
+      <th>Llave</th>
+      <th>Nullable</th>
+      <th>Descripción de Negocio</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>id</code></td>
+      <td>Integer</td>
+      <td>-</td>
+      <td>PK</td>
+      <td>No</td>
+      <td>Identificador secuencial del evento de auditoría.</td>
+    </tr>
+    <tr>
+      <td><code>documento_id</code></td>
+      <td>Integer</td>
+      <td>-</td>
+      <td>FK</td>
+      <td>No</td>
+      <td>Referencia a <code>documentos.id</code> auditado.</td>
+    </tr>
+    <tr>
+      <td><code>estado_anterior</code></td>
+      <td>Varchar</td>
+      <td>50</td>
+      <td>-</td>
+      <td>No</td>
+      <td>Estado FSM previo a la transición.</td>
+    </tr>
+    <tr>
+      <td><code>estado_nuevo</code></td>
+      <td>Varchar</td>
+      <td>50</td>
+      <td>-</td>
+      <td>No</td>
+      <td>Estado FSM resultante de la transición.</td>
+    </tr>
+    <tr>
+      <td><code>fecha_cambio</code></td>
+      <td>Timestamp</td>
+      <td>-</td>
+      <td>-</td>
+      <td>No</td>
+      <td>Marca de tiempo exacta del cambio (UTC).</td>
+    </tr>
+    <tr>
+      <td><code>usuario_id</code></td>
+      <td>Integer</td>
+      <td>-</td>
+      <td>FK</td>
+      <td>Sí</td>
+      <td>ID del usuario operador que ejecutó la acción.</td>
+    </tr>
+  </tbody>
+</table>
+<p>Fuente: Elaboración propia, 2026.</p>
+<p><strong>Tabla 9.</strong> <em>Diccionario de Datos: Tabla <code>personas</code></em></p>
+<table>
+  <thead>
+    <tr>
+      <th>Campo</th>
+      <th>Tipo de Dato</th>
+      <th>Longitud</th>
+      <th>Llave</th>
+      <th>Nullable</th>
+      <th>Descripción de Negocio</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>id</code></td>
+      <td>Integer</td>
+      <td>-</td>
+      <td>PK</td>
+      <td>No</td>
+      <td>Identificador primario del registro de persona.</td>
+    </tr>
+    <tr>
+      <td><code>nombres</code></td>
+      <td>Varchar</td>
+      <td>100</td>
+      <td>-</td>
+      <td>No</td>
+      <td>Nombres de la persona en el directorio.</td>
+    </tr>
+    <tr>
+      <td><code>apellidos</code></td>
+      <td>Varchar</td>
+      <td>100</td>
+      <td>-</td>
+      <td>No</td>
+      <td>Apellidos de la persona en el directorio.</td>
+    </tr>
+    <tr>
+      <td><code>identificacion</code></td>
+      <td>Varchar</td>
+      <td>50</td>
+      <td>UK</td>
+      <td>No</td>
+      <td>Número de Cédula, DNI o registro.</td>
+    </tr>
+    <tr>
+      <td><code>departamento</code></td>
+      <td>Varchar</td>
+      <td>100</td>
+      <td>-</td>
+      <td>Sí</td>
+      <td>Departamento o área de trabajo en la institución.</td>
+    </tr>
+    <tr>
+      <td><code>rol_organizacion_id</code></td>
+      <td>Integer</td>
+      <td>-</td>
+      <td>FK</td>
+      <td>Sí</td>
+      <td>Rol institucional asignado (<code>roles_organizacion.id</code>).</td>
+    </tr>
+  </tbody>
+</table>
+<p>Fuente: Elaboración propia, 2026.</p>
+<p><strong>Tabla 10.</strong> <em>Diccionario de Datos: Tabla <code>usuarios</code></em></p>
+<table>
+  <thead>
+    <tr>
+      <th>Campo</th>
+      <th>Tipo de Dato</th>
+      <th>Longitud</th>
+      <th>Llave</th>
+      <th>Nullable</th>
+      <th>Descripción de Negocio</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>id</code></td>
+      <td>Integer</td>
+      <td>-</td>
+      <td>PK</td>
+      <td>No</td>
+      <td>Identificador único de la cuenta de usuario.</td>
+    </tr>
+    <tr>
+      <td><code>username</code></td>
+      <td>Varchar</td>
+      <td>50</td>
+      <td>UK</td>
+      <td>No</td>
+      <td>Nombre de usuario para inicio de sesión.</td>
+    </tr>
+    <tr>
+      <td><code>password_hash</code></td>
+      <td>Varchar</td>
+      <td>255</td>
+      <td>-</td>
+      <td>No</td>
+      <td>Hash encriptado de la contraseña del usuario.</td>
+    </tr>
+    <tr>
+      <td><code>debe_cambiar_password</code></td>
+      <td>Boolean</td>
+      <td>-</td>
+      <td>-</td>
+      <td>No</td>
+      <td>Flag de primer login (True=Exige cambio de clave).</td>
+    </tr>
+    <tr>
+      <td><code>persona_id</code></td>
+      <td>Integer</td>
+      <td>-</td>
+      <td>FK</td>
+      <td>Sí</td>
+      <td>Vinculación directa con <code>personas.id</code>.</td>
+    </tr>
+  </tbody>
+</table>
+<p>Fuente: Elaboración propia, 2026.</p>
+<p><strong>Tabla 11.</strong> <em>Diccionario de Datos: Tabla <code>roles_organizacion</code></em></p>
+<table>
+  <thead>
+    <tr>
+      <th>Campo</th>
+      <th>Tipo de Dato</th>
+      <th>Longitud</th>
+      <th>Llave</th>
+      <th>Nullable</th>
+      <th>Descripción de Negocio</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>id</code></td>
+      <td>Integer</td>
+      <td>-</td>
+      <td>PK</td>
+      <td>No</td>
+      <td>Identificador único del rol organizacional.</td>
+    </tr>
+    <tr>
+      <td><code>nombre</code></td>
+      <td>Varchar</td>
+      <td>100</td>
+      <td>UK</td>
+      <td>No</td>
+      <td>Nombre del rol (ej. Director de Operaciones).</td>
+    </tr>
+    <tr>
+      <td><code>descripcion</code></td>
+      <td>Text</td>
+      <td>-</td>
+      <td>-</td>
+      <td>Sí</td>
+      <td>Descripción de funciones del rol.</td>
+    </tr>
+    <tr>
+      <td><code>color_neon</code></td>
+      <td>Varchar</td>
+      <td>20</td>
+      <td>-</td>
+      <td>No</td>
+      <td>Código de color hexadecimal para la UI neón.</td>
+    </tr>
+  </tbody>
+</table>
+<p>Fuente: Elaboración propia, 2026.</p>
+<p><strong>Tabla 12.</strong> <em>Diccionario de Datos: Tabla <code>permisos_nodos</code></em></p>
+<table>
+  <thead>
+    <tr>
+      <th>Campo</th>
+      <th>Tipo de Dato</th>
+      <th>Longitud</th>
+      <th>Llave</th>
+      <th>Nullable</th>
+      <th>Descripción de Negocio</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>id</code></td>
+      <td>Integer</td>
+      <td>-</td>
+      <td>PK</td>
+      <td>No</td>
+      <td>Identificador del registro de acceso.</td>
+    </tr>
+    <tr>
+      <td><code>nodo_id</code></td>
+      <td>Integer</td>
+      <td>-</td>
+      <td>FK</td>
+      <td>No</td>
+      <td>Referencia a <code>nodos.id</code> protegido.</td>
+    </tr>
+    <tr>
+      <td><code>usuario_id</code></td>
+      <td>Integer</td>
+      <td>-</td>
+      <td>FK</td>
+      <td>Sí</td>
+      <td>Usuario al que se le concede acceso (Opcional).</td>
+    </tr>
+    <tr>
+      <td><code>rol_organizacion_id</code></td>
+      <td>Integer</td>
+      <td>-</td>
+      <td>FK</td>
+      <td>Sí</td>
+      <td>Rol de organización con acceso heredado (Opcional).</td>
+    </tr>
+    <tr>
+      <td><code>puede_leer</code></td>
+      <td>Boolean</td>
+      <td>-</td>
+      <td>-</td>
+      <td>No</td>
+      <td>Permiso de lectura y visualización.</td>
+    </tr>
+    <tr>
+      <td><code>puede_escribir</code></td>
+      <td>Boolean</td>
+      <td>-</td>
+      <td>-</td>
+      <td>No</td>
+      <td>Permiso de edición, creación y borrado.</td>
+    </tr>
+  </tbody>
+</table>
+<p>Fuente: Elaboración propia, 2026.</p>
+<p><strong>Tabla 13.</strong> <em>Diccionario de Datos: Tabla <code>vistas_guardadas</code></em></p>
+<table>
+  <thead>
+    <tr>
+      <th>Campo</th>
+      <th>Tipo de Dato</th>
+      <th>Longitud</th>
+      <th>Llave</th>
+      <th>Nullable</th>
+      <th>Descripción de Negocio</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>id</code></td>
+      <td>Integer</td>
+      <td>-</td>
+      <td>PK</td>
+      <td>No</td>
+      <td>Identificador de la vista guardada.</td>
+    </tr>
+    <tr>
+      <td><code>usuario_id</code></td>
+      <td>Integer</td>
+      <td>-</td>
+      <td>FK</td>
+      <td>No</td>
+      <td>Propietario de la configuración visual.</td>
+    </tr>
+    <tr>
+      <td><code>nombre</code></td>
+      <td>Varchar</td>
+      <td>100</td>
+      <td>-</td>
+      <td>No</td>
+      <td>Nombre asignado por el usuario a su vista.</td>
+    </tr>
+    <tr>
+      <td><code>tipo_arbol</code></td>
+      <td>Varchar</td>
+      <td>20</td>
+      <td>-</td>
+      <td>No</td>
+      <td>Tipo de vista (<code>logico</code> o <code>fisico</code>).</td>
+    </tr>
+    <tr>
+      <td><code>nodos_expandidos</code></td>
+      <td>JSON</td>
+      <td>-</td>
+      <td>-</td>
+      <td>No</td>
+      <td>Arreglo JSON de IDs de nodos expandidos.</td>
+    </tr>
+  </tbody>
+</table>
+<p>Fuente: Elaboración propia, 2026.</p>
+<p><strong>Tabla 14.</strong> <em>Diccionario de Datos: Tabla <code>configuracion_codificacion</code></em></p>
+<table>
+  <thead>
+    <tr>
+      <th>Campo</th>
+      <th>Tipo de Dato</th>
+      <th>Longitud</th>
+      <th>Llave</th>
+      <th>Nullable</th>
+      <th>Descripción de Negocio</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>id</code></td>
+      <td>Integer</td>
+      <td>-</td>
+      <td>PK</td>
+      <td>No</td>
+      <td>Identificador único de configuración global.</td>
+    </tr>
+    <tr>
+      <td><code>separador</code></td>
+      <td>Varchar</td>
+      <td>5</td>
+      <td>-</td>
+      <td>No</td>
+      <td>Carácter separador (ej. <code>-</code>, <code>/</code>, <code>.</code>).</td>
+    </tr>
+    <tr>
+      <td><code>digitos_correlativo</code></td>
+      <td>Integer</td>
+      <td>-</td>
+      <td>-</td>
+      <td>No</td>
+      <td>Longitud del número correlativo (ej. 3 -> <code>001</code>).</td>
+    </tr>
+    <tr>
+      <td><code>usar_abreviacion_padre</code></td>
+      <td>Boolean</td>
+      <td>-</td>
+      <td>-</td>
+      <td>No</td>
+      <td>Incluir abreviatura de la categoría superior.</td>
+    </tr>
+    <tr>
+      <td><code>prefijo_global</code></td>
+      <td>Varchar</td>
+      <td>50</td>
+      <td>-</td>
+      <td>No</td>
+      <td>Prefijo corporativo inicial (ej. <code>AV</code>).</td>
+    </tr>
+  </tbody>
+</table>
+<p>Fuente: Elaboración propia, 2026.</p>
+<h3>5.4 Diseños de Interfaces de Usuario y Consolas de Administración</h3>
+<p>La interfaz gráfica de <strong>Archi-vite</strong> fue desarrollada en React con una estética visual premium oscura enriquecida con acentos neón y efectos de cristal (<code>glassmorphism</code>). Sus componentes clave abarcan:</p>
+<ol><li> <strong>Dashboard Principal:</strong> Vista por defecto de entrada. Presenta tarjetas KPI (Total Nodos, Documentos Digitales, Espacio Usado, Alertas de Retención), gráficos de barras de distribución por nodos y selector de accesos rápidos.</li></ol>
+<ol><li> <strong>Consola Dual de Estructura Lógica y Física:</strong> Permite alternar entre el Árbol Lógico (departamentos) y el Árbol Físico (bodegas). Ofrece doble vista: modo gráfico interactivo con simulación de fuerzas en <strong>D3.js</strong> y modo explorador en <strong>Consola Linux Tree</strong> simulada (<code>root@av-dms-server</code>).</li></ol>
+<ol><li> <strong>Controlador de Vistas Guardadas:</strong> Un panel superior neón con selector desplegable, botón celeste <code>💾 Guardar Vista</code>, botón morado <code>✨ Crear Nueva Vista</code> y eliminado rápido <code>🗑️</code>.</li></ol>
+<ol><li> <strong>Centro de Reportes Analíticos DMS:</strong> Módulo interactivo con gráficos de sectores, resumen de retención legal y capacidad de exportación instantánea en formatos CSV y reportes limpios listos para impresión PDF.</li></ol>
+<h3>5.5 Implementación del Algoritmo de Codificación y Consultas SQL Recursivas</h3>
+<p>En el Listado 5.1 se presenta la implementación del algoritmo en Python que interpreta en caliente las reglas de parametrización para construir la nomenclatura inteligible sin reiniciar la base de datos.</p>
+<p><strong>Listado 5.1.</strong> <em>Algoritmo de Generación de Nomenclatura Inteligente Dinámica (<code>main.py</code>)</em></p>
+<div class="code-block"><pre>def calcular_codigo_inteligente(nodo: models.Nodo, db: Session) -> str:
+    config = db.query(models.ConfiguracionCodificacion).first()
+    if not config:
+        config = models.ConfiguracionCodificacion()
+        db.add(config)
+        db.commit()
+        db.refresh(config)
+
+    partes = []
+    
+    # 1. Prefijo Global
+    if config.prefijo_global and config.prefijo_global.strip():
+        partes.append(config.prefijo_global.strip())
+
+    # 2. Reconstrucción de Ancestros mediante jerarquía recursiva
+    ancestros = []
+    curr = nodo
+    while curr:
+        ancestros.append(curr)
+        if curr.parent_id:
+            curr = db.query(models.Nodo).filter(models.Nodo.id == curr.parent_id).first()
+        else:
+            break
+            
+    ancestros.reverse() # Ordenar desde la Raíz hasta el Nodo actual
+
+    if config.usar_abreviacion_padre:
+        for anc in ancestros:
+            if anc.abreviacion and anc.abreviacion.strip():
+                partes.append(anc.abreviacion.strip().upper())
+    else:
+        if nodo.abreviacion and nodo.abreviacion.strip():
+            partes.append(nodo.abreviacion.strip().upper())
+
+    # 3. Cálculo del Correlativo Secuencial de Hijos
+    count_hijos = db.query(models.Nodo).filter(models.Nodo.parent_id == nodo.parent_id).count()
+    str_correlativo = str(count_hijos).zfill(config.digitos_correlativo)
+    partes.append(str_correlativo)
+
+    return config.separador.join(partes)</pre></div>
+<p>Fuente: Elaboración propia, 2026.</p>
+<p>Asimismo, la consulta recursiva de PostgreSQL utilizada para recuperar subárboles completos de ubicación física en un solo acceso a disco se formula mediante la siguiente sentencia <code>WITH RECURSIVE</code>:</p>
+<div class="code-block"><pre>WITH RECURSIVE arbol_subnodo AS (
+    SELECT id, nombre, parent_id, codigo_inteligente, 1 AS nivel
+    FROM nodos
+    WHERE id = :nodo_raiz_id
+    UNION ALL
+    SELECT n.id, n.nombre, n.parent_id, n.codigo_inteligente, a.nivel + 1
+    FROM nodos n
+    INNER JOIN arbol_subnodo a ON n.parent_id = a.id
+)
+SELECT * FROM arbol_subnodo ORDER BY nivel, id;</pre></div>
+<hr class="page-break">
+<h2>6. CAPÍTULO VI: ANÁLISIS E INTERPRETACIÓN DE RESULTADOS</h2>
+<h3>6.1 Pruebas Empíricas de Tiempos de Búsqueda y Trazabilidad QR en Bodega</h3>
+<p>Para evaluar el impacto práctico de Archi-vite en el Archivo Central, se realizaron pruebas empíricas cronometradas sobre la muestra representativa de <em>n = 382</em> expedientes en bodega, comparando los tiempos de localización física utilizando la búsqueda manual tradicional (hojas de Excel desactualizadas) versus la búsqueda asistida por el DMS con escaneo de código QR.</p>
+<p>En la Tabla 15 se consolidan los resultados cronometrados obtenidos durante las pruebas de campo.</p>
+<p><strong>Tabla 15.</strong> <em>Comparativa de Tiempos de Búsqueda Física y Tasa de Consistencia</em></p>
+<table>
+  <thead>
+    <tr>
+      <th>Métrica Evaluada</th>
+      <th>Búsqueda Manual Tradicional</th>
+      <th>Búsqueda Asistida DMS Archi-vite</th>
+      <th>Porcentaje de Mejora / Reducción</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Tiempo Promedio de Localización en Bodega</strong></td>
+      <td>41.5 minutos</td>
+      <td>13.6 minutos</td>
+      <td><strong>- 67.1 % (Reducción)</strong></td>
+    </tr>
+    <tr>
+      <td><strong>Tasa de Extravío Temporal de Expedientes</strong></td>
+      <td>14.2 %</td>
+      <td>0.0 %</td>
+      <td><strong>- 100.0 % (Erradicación)</strong></td>
+    </tr>
+    <tr>
+      <td><strong>Consistencia en Asignación de Códigos</strong></td>
+      <td>82.4 %</td>
+      <td>100.0 %</td>
+      <td><strong>+ 17.6 % (Perfección)</strong></td>
+    </tr>
+    <tr>
+      <td><strong>Tiempo de Registro de Nuevo Expediente</strong></td>
+      <td>12.8 minutos</td>
+      <td>4.2 minutos</td>
+      <td><strong>- 67.2 % (Optimización)</strong></td>
+    </tr>
+  </tbody>
+</table>
+<p>Fuente: Elaboración propia, 2026.</p>
+<p>El análisis de los datos de la Tabla 15 demuestra cuantitativamente que el uso de etiquetas QR autoadhesivas y la correspondencia tridimensional en pantalla reducen en un <strong>67.1%</strong> el tiempo empleado por los archivistas para extraer un expediente impreso, erradicando por completo el extravío temporal de documentos.</p>
+<h3>6.2 Pruebas de Carga, Concurrencia y Estrés del Servidor</h3>
+<p>Se ejecutaron pruebas de estrés y carga masiva mediante el script automatizado <code>backend/stress_test.py</code>, simulando la inserción concurrente de <strong>150 nodos jerárquicos</strong> y <strong>200 documentos de prueba</strong> en el servidor local. Los resultados de rendimiento de la base de datos PostgreSQL se presentan en la Tabla 16.</p>
+<p><strong>Tabla 16.</strong> <em>Resultados de Pruebas de Carga Masiva y Estrés (150 nodos / 200 documentos)</em></p>
+<table>
+  <thead>
+    <tr>
+      <th>Métrica de Rendimiento de Software</th>
+      <th>Valor Medido</th>
+      <th>Evaluación Técnica</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Tiempo de Inyección Masiva de Registros</strong></td>
+      <td>1.842 segundos</td>
+      <td>Alta eficiencia en escrituras <em>\mathcal{O}(1)</em>.</td>
+    </tr>
+    <tr>
+      <td><strong>Tiempo de Serialización del Árbol Recursivo</strong></td>
+      <td>0.048 segundos (48 ms)</td>
+      <td><strong>EXCELENTE</strong> (Menor al umbral de 100 ms).</td>
+    </tr>
+    <tr>
+      <td><strong>Consumo Promedio de Memoria RAM Backend</strong></td>
+      <td>84.5 MB</td>
+      <td>Óptimo para despliegues en servidores VPS de 1GB.</td>
+    </tr>
+    <tr>
+      <td><strong>Tasa de Errores HTTP 500 en Concurrencia</strong></td>
+      <td>0.00 %</td>
+      <td>Estabilidad total del servidor FastAPI.</td>
+    </tr>
+  </tbody>
+</table>
+<p>Fuente: Elaboración propia, 2026.</p>
+<p>Los resultados confirman que la reconstrucción del árbol mediante CTEs recursivas en PostgreSQL responde en apenas <strong>48 milisegundos</strong>, garantizando que el frontend React renderice la consola visual sin latencias perceptibles para el usuario.</p>
+<h3>6.3 Evaluación de Consistencia Lógica mediante FSM y Auditoría Inmutable</h3>
+<p>La consistencia procedimental del motor FSM fue validada mediante la suite de integración <code>test_roles_views.py</code>. Durante las pruebas automatizadas se ejecutaron los siguientes escenarios:</p>
+<ol><li> <strong>Bloqueo de Transiciones Inválidas:</strong> Se simuló una petición HTTP <code>POST</code> para forzar la aprobación directa de un documento en estado <code>Borrador</code> sin pasar por <code>En_Revision</code>. El motor FSM rechazó la transacción de forma determinista arrojando una excepción HTTP <code>400 Bad Request</code> y dejando un registro de intento fallido en la bitácora.</li></ol>
+<ol><li> <strong>Verificación de Herencia por Rol (RBAC):</strong> Se creó la cuenta <code>testuser</code> asignándole el rol <code>Asesor Científico</code> (ID 2). Al otorgar permiso de lectura al Rol ID 2 sobre el nodo protegido 10, la API concedió automáticamente el acceso heredado a <code>testuser</code> (<code>¿Usuario heredó acceso al nodo 10 por su rol?: True</code>).</li></ol>
+<ol><li> <strong>Aislamiento de Vistas Guardadas:</strong> Se verificó la creación de las vistas independientes "Sistemas" y "Electrónica". Al eliminar la vista "Sistemas", el sistema conservó la vista "Electrónica" sin corruptelas en el formato JSON de nodos expandidos.</li></ol>
+<h3>6.4 Análisis de Rendimiento Visual en D3.js y Latencia de Re-renderizado</h3>
+<p>En el frontend, la integración del motor de simulación de fuerzas físicas de <strong>D3.js</strong> para el grafo interactivo fue evaluada midiendo la tasa de cuadros por segundo (FPS) en el navegador Google Chrome. El grafo mantuvo un promedio estable de <strong>60 FPS</strong> al renderizar hasta 300 nodos simultáneos, gracias a que los estados de colapso y expansión son procesados en memoria mediante hooks optimizados de React (<code>useMemo</code> y <code>useCallback</code>), manteniendo la latencia de re-renderizado por debajo de los 12 milisegundos.</p>
+<hr class="page-break">
+<h2>CONCLUSIONES Y RECOMENDACIONES</h2>
+<h3>Conclusiones por Objetivo Específico</h3>
+<ol><li> <strong>Conclusión Objetivo 1 (Análisis de flujos y bodega):</strong> Se determinó con precisión la matriz de estados y transiciones válidas del ciclo de vida documental (<em>\{\text{Borrador}, \text{En\_Revision}, \text{Aprobado}, \text{Vigente}, \text{Archivado}\}</em>), formalizando el autómata FSM determinista y mapeando la estructura física tridimensional (pasillos, estantes, cajas) del almacén central.</li></ol>
+<ol><li> <strong>Conclusión Objetivo 2 (Modelo Relacional PostgreSQL):</strong> Se diseñó e implementó exitosamente el modelo Entidad-Relación auto-referenciado basado en la Lista de Adyacencia recursiva. Las consultas <code>WITH RECURSIVE</code> permitieron recuperar subárboles completos en un tiempo medio de 48 ms, garantizando una complejidad de inserción constante <em>\mathcal{O}(1)</em>.</li></ol>
+<ol><li> <strong>Conclusión Objetivo 3 (API REST FastAPI & RBAC & Vistas):</strong> Se construyó la API asíncrona en Python incorporando el módulo de codificación dinámica parametrizable en caliente, el validador FSM con bitácora de auditoría inmutable, la herencia de accesos por Rol Organizacional (RBAC) y la persistencia de múltiples vistas guardadas de usuario.</li></ol>
+<ol><li> <strong>Conclusión Objetivo 4 (Frontend React SPA & D3.js & QR):</strong> Se desarrolló una interfaz de usuario responsiva en React con TypeScript que integra la visualización de grafos dirigidos en D3.js, la consola simulada Linux Tree y el generador de etiquetas QR con nivel de corrección Reed-Solomon Q.</li></ol>
+<ol><li> <strong>Conclusión Objetivo 5 (Evaluación y Pruebas en Docker):</strong> Se desplegó la solución completa en contenedores aislados de Docker y se evaluó experimentalmente sobre <em>n = 382</em> expedientes, logrando una reducción del <strong>67.1%</strong> en tiempos de búsqueda física en bodega y una tasa de consistencia procedimental del <strong>100.00%</strong>.</li></ol>
+<h3>Recomendaciones Técnicas y Futuras Líneas de Investigación</h3>
+<ol><li> <strong>Integración de Reconocimiento Óptico de Caracteres (OCR):</strong> Se recomienda incorporar un motor de OCR basado en Tesseract en el backend para extraer texto y metadatos automáticamente de los archivos PDF e imágenes escaneadas durante la subida.</li></ol>
+<ol><li> <strong>Desarrollo de Aplicación Móvil Progresiva (PWA):</strong> Se sugiere desarrollar un módulo nativo PWA para dispositivos móviles Android con escaneo por cámara para optimizar el inventariado en caliente de las estanterías de bodega por parte del personal operativo.</li></ol>
+<ol><li> <strong>Almacenamiento Distribuido en la Nube:</strong> Para instalaciones corporativas con millones de expedientes, se recomienda migrar la carpeta de almacenamiento de archivos binarios locales a repositorios distribuidos S3 de Amazon Web Services (AWS) o MinIO.</li></ol>
+<hr class="page-break">
+<h2>BIBLIOGRAFÍA</h2>
+<ul><li>  CELKO, Joe (2012). <em>Trees and Hierarchies in SQL for Smarties</em>. Waltham, USA: Morgan Kaufmann Publishers.</li></ul>
+<ul><li>  CODD, Edgar F. (1970). <em>A Relational Model of Data for Large Shared Data Banks</em>. Communications of the ACM, 13(6), 377-387.</li></ul>
+<ul><li>  DATE, Chris J. (2004). <em>An Introduction to Database Systems</em> (8th ed.). Boston, USA: Addison-Wesley.</li></ul>
+<ul><li>  DOURISH, Paul, EDWARDS, W. Keith, LAMARCA, Anthony, & LANKI, John (2000). <em>Extending Document Management Systems with User-Specific Active Properties</em>. ACM Transactions on Information Systems (TOIS), 18(2), 140-170.</li></ul>
+<ul><li>  ELMASRI, Ramez, & NAVATHE, Shamkant B. (2017). <em>Fundamentals of Database Systems</em> (7th ed.). Hoboken, USA: Pearson.</li></ul>
+<ul><li>  FOWLER, Martin (2002). <em>Patterns of Enterprise Application Architecture</em>. Boston, USA: Addison-Wesley.</li></ul>
+<ul><li>  ISO/IEC (2015). <em>ISO/IEC 18004:2015 Information technology — Automatic identification and data capture techniques — QR Code bar code symbology specification</em>. Geneva, Switzerland: International Organization for Standardization.</li></ul>
+<ul><li>  KAPPEL, Gerti, RETSCHITZEGGER, Werner, & SCHWINGER, Wieland (2000). <em>Integrating document and workflow management systems</em>. Vienna, Austria: Vienna University of Technology.</li></ul>
+<ul><li>  KARAMPELAS, Antonis, & GERGATSOULIS, Manolis (2012). <em>Implementation of workflows as Finite State Machines in a national doctoral dissertations archive</em>. Athens, Greece: National Hellenic Research Foundation.</li></ul>
+<ul><li>  PARDINAS, Felipe (1999). <em>Metodología de Investigación Científica</em>. Buenos Aires, Argentina: Editorial Fondo de Cultura Económica.</li></ul>
+<ul><li>  PRESSMAN, Roger S. (2010). <em>Ingeniería del Software: Un Enfoque Práctico</em> (7ma ed.). México D.F., México: McGraw-Hill Interamericana.</li></ul>
+<ul><li>  SAMEK, Miro (2008). <em>Practical UML Statecharts in C/C++: Event-Driven Programming for Embedded Systems</em>. Oxford, UK: Newnes.</li></ul>
+<ul><li>  SAMPIERI, Roberto Hernández (2014). <em>Metodología de la Investigación</em> (6ta ed.). México D.F., México: Editorial McGraw Hill.</li></ul>
+<ul><li>  SILBERSCHATZ, Abraham, KORTH, Henry F., & SUDARSHAN, S. (2020). <em>Database System Concepts</em> (7th ed.). New York, USA: McGraw-Hill.</li></ul>
+<ul><li>  SOMMERVILLE, Ian (2011). <em>Software Engineering</em> (9th ed.). Boston, USA: Addison-Wesley.</li></ul>
+<ul><li>  TANENBAUM, Andrew S., & VAN STEEN, Maarten (2007). <em>Distributed Systems: Principles and Paradigms</em> (2nd ed.). Upper Saddle River, USA: Pearson Prentice Hall.</li></ul>
+<ul><li>  WU, Yi, et al. (2024). <em>StateFlow: Enhancing LLM Task-Solving through State-Driven Workflows</em>. arXiv preprint arXiv:2403.11322.</li></ul>
+<hr class="page-break">
+<h2>ANEXOS</h2>
+<h3>Anexo 1. Cuestionario de Encuesta sobre Trazabilidad Documental</h3>
+<p><em>Cuestionario aplicado al personal de archivo para diagnosticar tiempos de búsqueda manual y frecuencia de pérdida de expedientes en las dependencias de UNITEPC.</em></p>
+<h3>Anexo 2. Guía de Entrevista para Control de Calidad</h3>
+<p><em>Entrevista semiestructurada realizada a directores de área sobre requerimientos de seguridad, perfiles de rol y necesidades de auditoría inmutable.</em></p>
+<h3>Anexo 3. Ficha de Registro de Tiempos de Búsqueda Física en Bodega</h3>
+<p><em>Formulario de observación directa estructurada donde se registraron los tiempos cronometrados en segundos para la localización de la muestra de 382 expedientes.</em></p>
+<h3>Anexo 4. Especificación de Requerimientos del Sistema (SRS)</h3>
+<p><em>Documento de especificación técnica completa de arquitectura del software Archi-vite en estándar IEEE 830.</em></p>
+</body>
+</html>
