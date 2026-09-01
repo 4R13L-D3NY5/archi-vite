@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Guion Oficial de Exposición y Defensa: Archi-vite DMS (UNITEPC)</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Mermaid CDN para diagramas interactivos -->
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <!-- FontAwesome CDN para iconos -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500;600&family=Lora:ital,wght@0,400;0,600;1,400&display=swap');
+
+    :root {
+        --font-sans: 'Inter', sans-serif;
+        --font-speech: 'Lora', Georgia, serif;
+        --font-mono: 'Fira Code', monospace;
+    }
+
+    body {
+        font-family: var(--font-sans);
+        background-color: #0f172a;
+        color: #e2e8f0;
+    }
+
+    .speech-text {
+        font-family: var(--font-speech);
+        font-size: 1.125rem;
+        line-height: 1.85;
+        color: #f1f5f9;
+    }
+
+    .action-badge {
+        font-family: var(--font-mono);
+        font-size: 0.8rem;
+    }
+
+    .glass-panel {
+        background: rgba(30, 41, 59, 0.7);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .speech-card {
+        background: linear-gradient(135deg, rgba(30, 41, 59, 0.9) 0%, rgba(15, 23, 42, 0.9) 100%);
+        border-left: 4px solid #6366f1;
+    }
+
+    .live-demo-card {
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(6, 78, 59, 0.15) 100%);
+        border-left: 4px solid #10b981;
+    }
+
+    .tribunal-card {
+        background: linear-gradient(135deg, rgba(245, 158, 11, 0.08) 0%, rgba(120, 53, 15, 0.15) 100%);
+        border-left: 4px solid #f59e0b;
+    }
+
+    .mermaid {
+        background: #ffffff;
+        border-radius: 0.75rem;
+        padding: 1.25rem;
+    }
+
+    /* Estilos de Impresión */
+    @media print {
+        body {
+            background: white !important;
+            color: black !important;
+        }
+        #topbar, #sidebar, .no-print, .copy-btn {
+            display: none !important;
+        }
+        #main-container {
+            margin: 0 !important;
+            padding: 0 !important;
+            max-width: 100% !important;
+        }
+        .speech-card, .live-demo-card, .tribunal-card, .glass-panel {
+            background: white !important;
+            color: black !important;
+            border: 1px solid #cbd5e1 !important;
+            page-break-inside: avoid;
+        }
+        .speech-text {
+            color: black !important;
+            font-size: 11pt !important;
+        }
+    }
+  </style>
+</head>
+<body class="flex flex-col min-h-screen">
+
+    <!-- Toast Flotante -->
+    <div id="toast" class="fixed bottom-6 right-6 z-50 transform translate-y-24 opacity-0 pointer-events-none bg-indigo-600 text-white px-5 py-3 rounded-xl shadow-2xl flex items-center gap-3 font-medium text-sm transition-all duration-300">
+        <i class="fa-solid fa-circle-check text-emerald-300 text-lg"></i>
+        <span id="toast-text">Copiado al portapapeles</span>
+    </div>
+
+    <!-- Barra Superior Fija con Cronómetro y Controles -->
+    <header id="topbar" class="sticky top-0 z-50 glass-panel border-b border-slate-800 px-6 py-3.5 flex items-center justify-between shadow-lg">
+        <div class="flex items-center space-x-3">
+            <div class="w-9 h-9 rounded-lg bg-indigo-600 flex items-center justify-center text-white shadow-indigo-500/30 shadow-lg">
+                <i class="fa-solid fa-microphone-lines text-lg"></i>
+            </div>
+            <div>
+                <h1 class="font-bold text-sm md:text-base text-white flex items-center gap-2">
+                    Guion Oficial de Exposición y Defensa
+                    <span class="text-xs bg-indigo-500/20 text-indigo-300 font-semibold px-2 py-0.5 rounded border border-indigo-500/30">Archi-vite DMS</span>
+                </h1>
+                <p class="text-xs text-slate-400">UNITEPC • Proyecto de Grado • Duración sugerida: 20 - 25 min</p>
+            </div>
+        </div>
+
+        <!-- Cronómetro de Ensayo -->
+        <div class="flex items-center gap-4">
+            <div class="flex items-center bg-slate-950 px-3.5 py-1.5 rounded-lg border border-slate-800 text-sm font-mono">
+                <i class="fa-regular fa-clock text-indigo-400 mr-2"></i>
+                <span id="timer-display" class="font-bold text-emerald-400 text-base">00:00</span>
+                <div class="flex items-center gap-1.5 ml-3 border-l border-slate-800 pl-2">
+                    <button onclick="toggleTimer()" id="timer-btn" title="Iniciar / Pausar Cronómetro" class="text-slate-400 hover:text-emerald-400 transition text-xs">
+                        <i class="fa-solid fa-play"></i>
+                    </button>
+                    <button onclick="resetTimer()" title="Reiniciar Cronómetro" class="text-slate-400 hover:text-rose-400 transition text-xs">
+                        <i class="fa-solid fa-rotate-right"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Botones de Acción -->
+            <div class="flex items-center space-x-2 no-print">
+                <button onclick="window.print()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs px-3 py-2 rounded-lg font-medium flex items-center transition border border-slate-700">
+                    <i class="fa-solid fa-print mr-1.5"></i> Imprimir Guion
+                </button>
+                <a href="http://localhost:5173" target="_blank" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs px-3.5 py-2 rounded-lg font-semibold flex items-center transition shadow-lg shadow-indigo-600/30">
+                    <i class="fa-solid fa-arrow-up-right-from-square mr-1.5"></i> Abrir Archi-vite DMS
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <div id="main-container" class="flex flex-1 max-w-7xl w-full mx-auto px-4 py-8 gap-8">
+
+        <!-- Barra Lateral de Navegación Rápida -->
+        <aside id="sidebar" class="w-72 shrink-0 hidden lg:block sticky top-24 h-[calc(100vh-8rem)] overflow-y-auto space-y-2 pr-2 text-xs">
+            <p class="font-bold uppercase tracking-wider text-slate-400 mb-3 px-2 flex items-center">
+                <i class="fa-solid fa-list-check text-indigo-400 mr-2"></i> Estructura del Guion
+            </p>
+            
+            <a href="#checklist-previo" class="block px-3 py-2 rounded-lg text-slate-300 hover:bg-slate-800/80 hover:text-indigo-400 transition font-medium">
+                📋 Checklist Previo a la Defensa
+            </a>
+            <a href="#acto-1" class="block px-3 py-2 rounded-lg text-slate-300 hover:bg-slate-800/80 hover:text-indigo-400 transition font-medium">
+                🎙️ Acto I: Introducción y Dolor (3 min)
+            </a>
+            <a href="#acto-2" class="block px-3 py-2 rounded-lg text-slate-300 hover:bg-slate-800/80 hover:text-indigo-400 transition font-medium">
+                🏛️ Acto II: Arquitectura Técnica (3 min)
+            </a>
+            <a href="#acto-3" class="block px-3 py-2 rounded-lg text-slate-300 hover:bg-slate-800/80 hover:text-indigo-400 transition font-medium">
+                💻 Acto III: Demostración en Vivo (12 min)
+            </a>
+            <div class="pl-4 space-y-1 border-l border-slate-800 text-[11px] text-slate-400">
+                <a href="#demo-seguridad" class="block py-1 hover:text-emerald-400">1. Seguridad y RBAC</a>
+                <a href="#demo-dualidad" class="block py-1 hover:text-emerald-400">2. Doble Jerarquía</a>
+                <a href="#demo-nomenclatura" class="block py-1 hover:text-emerald-400">3. Nomenclatura Dinámica</a>
+                <a href="#demo-fsm" class="block py-1 hover:text-emerald-400">4. Ciclo FSM e Inmutabilidad</a>
+                <a href="#demo-qr" class="block py-1 hover:text-emerald-400">5. Trazabilidad 3D y QR</a>
+                <a href="#demo-vistas" class="block py-1 hover:text-emerald-400">6. Vistas Guardadas</a>
+                <a href="#demo-d3" class="block py-1 hover:text-emerald-400">7. Grafos D3.js Force</a>
+                <a href="#demo-auditoria" class="block py-1 hover:text-emerald-400">8. Auditoría Forense</a>
+            </div>
+            <a href="#acto-4" class="block px-3 py-2 rounded-lg text-slate-300 hover:bg-slate-800/80 hover:text-indigo-400 transition font-medium">
+                📊 Acto IV: Resultados TAM/SUS (3 min)
+            </a>
+            <a href="#acto-5" class="block px-3 py-2 rounded-lg text-slate-300 hover:bg-slate-800/80 hover:text-indigo-400 transition font-medium">
+                🎯 Acto V: Conclusión y Cierre (1 min)
+            </a>
+            <a href="#preguntas-tribunal" class="block px-3 py-2 rounded-lg text-amber-400 hover:bg-amber-500/10 transition font-bold border border-amber-500/20">
+                ❓ 10 Preguntas Clave del Tribunal
+            </a>
+        </aside>
+
+        <!-- Contenido Principal del Guion -->
+        <main class="flex-1 space-y-12 min-w-0 pb-16">
+
+            <!-- RESUMEN VISUAL DEL FLUJO -->
+            <section class="glass-panel p-6 rounded-2xl shadow-xl">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-route text-indigo-400"></i> Flujo Estratégico de la Presentación
+                    </h2>
+                    <span class="text-xs font-mono bg-indigo-500/20 text-indigo-300 px-2.5 py-1 rounded-full">Storytelling Académico</span>
+                </div>
+                <div class="mermaid">
+graph LR
+    A["1. El Problema<br>(Divorcio Físico-Digital)"] --> B["2. La Arquitectura<br>(Headless + FSM + SQL)"]
+    B --> C["3. Demo en Vivo<br>(8 Módulos DMS)"]
+    C --> D["4. Validación Cuantitativa<br>(Reducción 67% + TAM + SUS)"]
+    D --> E["5. Cierre y Defensa<br>(Preguntas del Tribunal)"]
+                </div>
+            </section>
+
+            <!-- CHECKLIST PREVIO -->
+            <section id="checklist-previo" class="glass-panel p-6 rounded-2xl border-slate-700">
+                <h3 class="text-base font-bold text-white mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-list-check text-emerald-400"></i> Checklist Técnico Antes de Iniciar la Defensa
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs text-slate-300">
+                    <div class="flex items-start gap-2 bg-slate-900/60 p-3 rounded-lg border border-slate-800">
+                        <i class="fa-solid fa-circle-check text-emerald-400 mt-0.5"></i>
+                        <span><strong>Backend FastAPI Activo:</strong> <code>http://localhost:8000/docs</code> abierto en una pestaña por si piden consultar Swagger.</span>
+                    </div>
+                    <div class="flex items-start gap-2 bg-slate-900/60 p-3 rounded-lg border border-slate-800">
+                        <i class="fa-solid fa-circle-check text-emerald-400 mt-0.5"></i>
+                        <span><strong>Frontend React Listo:</strong> <code>http://localhost:5173</code> con sesión iniciada y datos sembrados.</span>
+                    </div>
+                    <div class="flex items-start gap-2 bg-slate-900/60 p-3 rounded-lg border border-slate-800">
+                        <i class="fa-solid fa-circle-check text-emerald-400 mt-0.5"></i>
+                        <span><strong>Documento HTML de Respaldo:</strong> <code>informe_final_proyecto_grado.html</code> cargado para proyectar diagramas o fórmulas.</span>
+                    </div>
+                    <div class="flex items-start gap-2 bg-slate-900/60 p-3 rounded-lg border border-slate-800">
+                        <i class="fa-solid fa-circle-check text-emerald-400 mt-0.5"></i>
+                        <span><strong>Smartphone / Lector QR:</strong> Listo para escanear en vivo una etiqueta generada por el sistema.</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ============================================================= -->
+            <!-- ACTO I: INTRODUCCIÓN Y PROBLEMA -->
+            <!-- ============================================================= -->
+            <section id="acto-1" class="space-y-4">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                    <h2 class="text-xl font-extrabold text-white flex items-center gap-3">
+                        <span class="w-8 h-8 rounded-lg bg-indigo-600/30 text-indigo-400 flex items-center justify-center text-sm font-mono border border-indigo-500/30">01</span>
+                        Acto I: Introducción y Planteamiento del Problema
+                    </h2>
+                    <span class="text-xs bg-slate-800 text-slate-300 font-mono px-3 py-1 rounded-full">⏱️ 3 Minutos</span>
+                </div>
+
+                <!-- Tarjeta de Discurso -->
+                <div class="speech-card p-6 rounded-2xl space-y-4 relative">
+                    <button onclick="copyBlock(this)" class="copy-btn absolute top-4 right-4 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs px-2.5 py-1 rounded border border-slate-700 flex items-center gap-1.5 transition">
+                        <i class="fa-solid fa-copy"></i> Copiar Discurso
+                    </button>
+                    <div class="flex items-center gap-2 text-indigo-400 font-semibold text-xs uppercase tracking-wider">
+                        <i class="fa-solid fa-microphone"></i> Discurso Oral del Expositor
+                    </div>
+                    <div class="speech-text space-y-3">
+                        <p>
+                            "Muy buenos días, distinguidos miembros del Tribunal Examinador, autoridades académicas y docentes presentes. Mi nombre es <strong>[Tu Nombre]</strong> y tengo el honor de presentar la defensa de grado titulada: <em>'Sistema de Gestión Documental Híbrido con Máquina de Estados Finitas y Doble Jerarquía de Clasificación: DMS Archi-vite'</em>, desarrollado para optimizar la gobernanza documental y la custodia física en la Universidad Técnica Privada Cosmos (UNITEPC)."
+                        </p>
+                        <p>
+                            "Para entender el valor de este desarrollo, debemos analizar la realidad cotidiana de los archivos universitarios. Tradicionalmente existe un <strong>divorcio estructural</strong> entre el archivo digital (carpetas en nubes y servidores) y el archivo físico (galpones, estantes, cajas y archivadores de palanca). En UNITEPC, localizar un expediente histórico tomaba un promedio de <strong>41.5 minutos</strong>, sufriendo extravíos, códigos duplicados y ausencia de control en el ciclo de vida. Ante esta problemática, diseñamos Archi-vite."
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Diagrama Árbol de Problemas -->
+                <div class="glass-panel p-5 rounded-2xl">
+                    <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">
+                        <i class="fa-solid fa-project-diagram mr-1 text-indigo-400"></i> Diagrama de Respaldo: Árbol de Problemas (Figura 1)
+                    </p>
+                    <div class="mermaid">
+graph TD
+    P["PROBLEMA CENTRAL:<br>Deficiente trazabilidad y consistencia<br>en expedientes híbridos"]
+    C1["Divorcio estructural lógico-físico"] --> P
+    C2["Codificación manual rígida"] --> P
+    C3["Ausencia de control de estados FSM"] --> P
+    P --> E1["Demora > 40 min en búsqueda"]
+    P --> E2["14.2% Tasa de extravío"]
+    P --> E3["Falta de inmutabilidad legal"]
+                    </div>
+                </div>
+            </section>
+
+            <!-- ============================================================= -->
+            <!-- ACTO II: FUNDAMENTACIÓN Y ARQUITECTURA TÉCNICA -->
+            <!-- ============================================================= -->
+            <section id="acto-2" class="space-y-4">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                    <h2 class="text-xl font-extrabold text-white flex items-center gap-3">
+                        <span class="w-8 h-8 rounded-lg bg-indigo-600/30 text-indigo-400 flex items-center justify-center text-sm font-mono border border-indigo-500/30">02</span>
+                        Acto II: Fundamentación y Arquitectura Técnica
+                    </h2>
+                    <span class="text-xs bg-slate-800 text-slate-300 font-mono px-3 py-1 rounded-full">⏱️ 3 Minutos</span>
+                </div>
+
+                <div class="speech-card p-6 rounded-2xl space-y-4 relative">
+                    <button onclick="copyBlock(this)" class="copy-btn absolute top-4 right-4 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs px-2.5 py-1 rounded border border-slate-700 flex items-center gap-1.5 transition">
+                        <i class="fa-solid fa-copy"></i> Copiar Discurso
+                    </button>
+                    <div class="flex items-center gap-2 text-indigo-400 font-semibold text-xs uppercase tracking-wider">
+                        <i class="fa-solid fa-microphone"></i> Discurso Oral del Expositor
+                    </div>
+                    <div class="speech-text space-y-3">
+                        <p>
+                            "Archi-vite se fundamenta en cuatro pilares de ingeniería de software:"
+                        </p>
+                        <ul class="list-disc pl-6 space-y-2 text-base text-slate-200">
+                            <li><strong>Arquitectura Desacoplada (Headless):</strong> Backend asíncrono en <strong>FastAPI (Python 3.10)</strong> y SPA reactiva en <strong>React 19 + TypeScript y D3.js</strong>.</li>
+                            <li><strong>Modelo Relacional Auto-referenciado en 3FN:</strong> Una tabla <code>nodos</code> capaz de albergar jerarquías ilimitadas mediante recursión SQL (<code>WITH RECURSIVE</code>).</li>
+                            <li><strong>Máquina de Estados Finitos (FSM):</strong> Un autómata determinista formal $(Q, \Sigma, \delta, q_0, F)$ que garantiza la inmutabilidad y orden procedimental de cada documento.</li>
+                            <li><strong>Trazabilidad 3D con Código QR:</strong> Identificadores UUID v4 vinculados a coordenadas físicas (Pasillo, Estante, Balda, Caja).</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Arquitectura 3 Capas -->
+                <div class="glass-panel p-5 rounded-2xl">
+                    <div class="mermaid">
+graph TD
+    subgraph Capa_Frontend [Frontend Client - React 19 SPA]
+        UI["Consola UI React & Tailwind"]
+        D3["Visor de Grafos D3.js"]
+    end
+    subgraph Capa_Logica [Backend Logic - FastAPI REST]
+        API["Motor REST Asíncrono"]
+        FSM["Controlador FSM"]
+        QR["Motor de Códigos QR Level Q"]
+    end
+    subgraph Capa_Datos [Persistencia - PostgreSQL 15]
+        DB["Tablas Relacionales & JSONB"]
+        AUD["Bitácora Forense Inmutable"]
+    end
+    UI <-->|"HTTPS JSON"| API
+    API <-->|"SQLAlchemy Async"| DB
+                    </div>
+                </div>
+            </section>
+
+            <!-- ============================================================= -->
+            <!-- ACTO III: DEMOSTRACIÓN EN VIVO DE LOS MÓDULOS DMS -->
+            <!-- ============================================================= -->
+            <section id="acto-3" class="space-y-6">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                    <h2 class="text-xl font-extrabold text-white flex items-center gap-3">
+                        <span class="w-8 h-8 rounded-lg bg-emerald-600/30 text-emerald-400 flex items-center justify-center text-sm font-mono border border-emerald-500/30">03</span>
+                        Acto III: Demostración en Vivo de los 8 Módulos DMS
+                    </h2>
+                    <span class="text-xs bg-emerald-950 text-emerald-300 font-mono px-3 py-1 rounded-full border border-emerald-800">⏱️ 12 Minutos (Clave)</span>
+                </div>
+
+                <!-- MÓDULO 1: SEGURIDAD Y RBAC -->
+                <div id="demo-seguridad" class="live-demo-card p-6 rounded-2xl space-y-4">
+                    <div class="flex items-center justify-between">
+                        <span class="action-badge bg-emerald-950 text-emerald-400 px-3 py-1 rounded-md border border-emerald-700">MÓDULO 1: SEGURIDAD Y RBAC</span>
+                        <span class="text-xs text-slate-400"><i class="fa-solid fa-desktop mr-1"></i> Pantalla: Formulario de Login</span>
+                    </div>
+                    <div class="speech-text">
+                        "Iniciamos en la capa de seguridad con <strong>RBAC (Control de Acceso Basado en Roles)</strong>. Cuando un usuario nuevo ingresa con su cédula, el sistema detecta que es su primer acceso y le exige cambiar su clave antes de permitirle navegar. La contraseña se almacena con hash criptográfico <code>bcrypt</code>, protegiendo los datos sensibles de la universidad."
+                    </div>
+                    <div class="bg-slate-900/80 p-3 rounded-lg text-xs font-mono text-slate-300 border border-slate-800">
+                        🎯 <strong>Acción en vivo:</strong> Iniciar sesión con usuario nuevo y mostrar el modal obligatorio de actualización de contraseña.
+                    </div>
+                </div>
+
+                <!-- MÓDULO 2: DOBLE JERARQUÍA -->
+                <div id="demo-dualidad" class="live-demo-card p-6 rounded-2xl space-y-4">
+                    <div class="flex items-center justify-between">
+                        <span class="action-badge bg-emerald-950 text-emerald-400 px-3 py-1 rounded-md border border-emerald-700">MÓDULO 2: DUALIDAD LÓGICO-FÍSICA</span>
+                        <span class="text-xs text-slate-400"><i class="fa-solid fa-desktop mr-1"></i> Pantalla: Pestañas de Árbol</span>
+                    </div>
+                    <div class="speech-text">
+                        "Aquí presenciamos la gran innovación de Archi-vite: <strong>La coexistencia de dos árboles en un solo repositorio</strong>. El <em>Árbol Lógico</em> reproduce las 9 grandes áreas de UNITEPC (Salud, Tecnología, FACEA, DAF, DRE, RRHH, DIDC, Secretaría General). Pero con un clic, pasamos al <em>Árbol Físico</em>, que modela la logística real: Galpón $ightarrow$ Ambiente $ightarrow$ Estante $ightarrow$ Caja $ightarrow$ Archivador de palanca."
+                    </div>
+                    <div class="bg-slate-900/80 p-3 rounded-lg text-xs font-mono text-slate-300 border border-slate-800">
+                        🎯 <strong>Acción en vivo:</strong> Alternar entre la pestaña 'Árbol Lógico' y 'Árbol Físico' para que el tribunal observe el cambio fluido de estructura.
+                    </div>
+                </div>
+
+                <!-- MÓDULO 3: NOMENCLATURA INTELIGENTE -->
+                <div id="demo-nomenclatura" class="live-demo-card p-6 rounded-2xl space-y-4">
+                    <div class="flex items-center justify-between">
+                        <span class="action-badge bg-emerald-950 text-emerald-400 px-3 py-1 rounded-md border border-emerald-700">MÓDULO 3: CODIFICACIÓN DINÁMICA</span>
+                        <span class="text-xs text-slate-400"><i class="fa-solid fa-desktop mr-1"></i> Pantalla: Modal Nueva Carpeta</span>
+                    </div>
+                    <div class="speech-text">
+                        "Para eliminar la codificación manual propensa a errores, Archi-vite ejecuta un <strong>algoritmo recursivo en Python</strong>. Al crear una carpeta en <em>'Tecnología -> Sistemas -> Proyectos de Grado'</em>, el motor extrae el prefijo <code>UNITEPC</code>, concatena las abreviaciones de los ancestros y calcula el correlativo automático: <code>UNITEPC-FCT-SIS-PG-001</code>. Cero duplicados, total estandarización."
+                    </div>
+                    <div class="bg-slate-900/80 p-3 rounded-lg text-xs font-mono text-slate-300 border border-slate-800">
+                        🎯 <strong>Acción en vivo:</strong> Abrir el modal de creación y mostrar cómo el campo 'Código Inteligente' se autocalcula en tiempo real.
+                    </div>
+                </div>
+
+                <!-- MÓDULO 4: FSM E INMUTABILIDAD -->
+                <div id="demo-fsm" class="live-demo-card p-6 rounded-2xl space-y-4">
+                    <div class="flex items-center justify-between">
+                        <span class="action-badge bg-emerald-950 text-emerald-400 px-3 py-1 rounded-md border border-emerald-700">MÓDULO 4: CICLO DE VIDA FSM</span>
+                        <span class="text-xs text-slate-400"><i class="fa-solid fa-desktop mr-1"></i> Pantalla: Detalle del Expediente</span>
+                    </div>
+                    <div class="speech-text">
+                        "El corazón de la gobernanza documental es la <strong>Máquina de Estados Finitos (FSM)</strong>. Un documento nace en <em>Borrador</em>. Se transiciona a <em>En Revisión</em> (donde se bloquea la edición). El Revisor puede <em>Rechazar</em> o <em>Aprobar</em>. Luego se publica como <em>Vigente</em> y, al llegar a custodia física, pasa a <strong>Archivado</strong>. En este estado final, el sistema activa una regla estricta de <strong>Inmutabilidad Transaccional</strong>: nadie puede alterar ni eliminar el archivo."
+                    </div>
+                    <div class="mermaid">
+stateDiagram-v2
+    [*] --> Borrador : Crear Expediente
+    Borrador --> En_Revision : Enviar a Revision
+    En_Revision --> Borrador : Rechazar
+    En_Revision --> Aprobado : Aprobar
+    Aprobado --> Vigente : Publicar
+    Vigente --> Archivado : Archivar
+    Archivado --> [*] : Inmutabilidad Legal
+                    </div>
+                    <div class="bg-slate-900/80 p-3 rounded-lg text-xs font-mono text-slate-300 border border-slate-800">
+                        🎯 <strong>Acción en vivo:</strong> Seleccionar un documento, hacer clic en 'Aprobar' y mostrar la notificación neón y el cambio de estado instantáneo.
+                    </div>
+                </div>
+
+                <!-- MÓDULO 5: TRAZABILIDAD 3D Y QR -->
+                <div id="demo-qr" class="live-demo-card p-6 rounded-2xl space-y-4">
+                    <div class="flex items-center justify-between">
+                        <span class="action-badge bg-emerald-950 text-emerald-400 px-3 py-1 rounded-md border border-emerald-700">MÓDULO 5: TRAZABILIDAD 3D & CÓDIGO QR</span>
+                        <span class="text-xs text-slate-400"><i class="fa-solid fa-desktop mr-1"></i> Pantalla: Modal Etiqueta QR</span>
+                    </div>
+                    <div class="speech-text">
+                        "¿Cómo vinculamos el expediente con su ubicación exacta en el galpón? Con un solo clic, Archi-vite genera una <strong>Ficha de Custodia con Código QR Nivel Q</strong>. Al escanear este código con cualquier smartphone o lector óptico, el sistema devuelve las coordenadas tridimensionales de localización: <em>Campus Florida, Galpón 01, Ambiente A-1, Estante 01, Archivador Azul A-01</em>."
+                    </div>
+                    <div class="bg-slate-900/80 p-3 rounded-lg text-xs font-mono text-slate-300 border border-slate-800">
+                        🎯 <strong>Acción en vivo:</strong> Presionar 'Generar Etiqueta QR' y mostrar la ficha técnica con el código QR renderizado en alta definición.
+                    </div>
+                </div>
+
+                <!-- MÓDULO 6: VISTAS GUARDADAS -->
+                <div id="demo-vistas" class="live-demo-card p-6 rounded-2xl space-y-4">
+                    <div class="flex items-center justify-between">
+                        <span class="action-badge bg-emerald-950 text-emerald-400 px-3 py-1 rounded-md border border-emerald-700">MÓDULO 6: VISTAS GUARDADAS</span>
+                        <span class="text-xs text-slate-400"><i class="fa-solid fa-desktop mr-1"></i> Pantalla: Selector de Vistas</span>
+                    </div>
+                    <div class="speech-text">
+                        "En repositorios masivos, los operadores pierden tiempo expandiendo los mismos nodos todos los días. Con el módulo de <strong>Vistas Guardadas</strong>, el usuario guarda su árbol de trabajo personalizado (por ejemplo, <em>'Auditoría DAF 2026'</em>) y lo recupera al instante con un solo clic."
+                    </div>
+                </div>
+
+                <!-- MÓDULO 7: GRAFOS D3.JS -->
+                <div id="demo-d3" class="live-demo-card p-6 rounded-2xl space-y-4">
+                    <div class="flex items-center justify-between">
+                        <span class="action-badge bg-emerald-950 text-emerald-400 px-3 py-1 rounded-md border border-emerald-700">MÓDULO 7: VISOR DE GRAFOS D3.JS</span>
+                        <span class="text-xs text-slate-400"><i class="fa-solid fa-desktop mr-1"></i> Pantalla: Pestaña Red D3.js</span>
+                    </div>
+                    <div class="speech-text">
+                        "Para auditorías estructurales, incorporamos un <strong>Visor de Grafos de Red en D3.js con simulación de fuerzas</strong>. Permite ver la topología completa: los nodos centrales son facultades y los satélites son los expedientes, identificando visualmente acumulaciones de carga documental."
+                    </div>
+                    <div class="bg-slate-900/80 p-3 rounded-lg text-xs font-mono text-slate-300 border border-slate-800">
+                        🎯 <strong>Acción en vivo:</strong> Abrir la vista de grafo, hacer zoom e interactuar arrastrando nodos con el cursor.
+                    </div>
+                </div>
+
+                <!-- MÓDULO 8: AUDITORÍA FORENSE -->
+                <div id="demo-auditoria" class="live-demo-card p-6 rounded-2xl space-y-4">
+                    <div class="flex items-center justify-between">
+                        <span class="action-badge bg-emerald-950 text-emerald-400 px-3 py-1 rounded-md border border-emerald-700">MÓDULO 8: BITÁCORA FORENSE</span>
+                        <span class="text-xs text-slate-400"><i class="fa-solid fa-desktop mr-1"></i> Pantalla: Tabla de Auditoría</span>
+                    </div>
+                    <div class="speech-text">
+                        "Cada acción queda registrada de forma inmutable en la tabla <code>bitacora_auditoria</code>: fecha y hora UTC, usuario responsable, estado previo y estado resultante. Total transparencia para acreditaciones y auditorías de control gubernamental."
+                    </div>
+                </div>
+            </section>
+
+            <!-- ============================================================= -->
+            <!-- ACTO IV: RESULTADOS CUANTITATIVOS -->
+            <!-- ============================================================= -->
+            <section id="acto-4" class="space-y-4">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                    <h2 class="text-xl font-extrabold text-white flex items-center gap-3">
+                        <span class="w-8 h-8 rounded-lg bg-indigo-600/30 text-indigo-400 flex items-center justify-center text-sm font-mono border border-indigo-500/30">04</span>
+                        Acto IV: Validación Empírica y Resultados
+                    </h2>
+                    <span class="text-xs bg-slate-800 text-slate-300 font-mono px-3 py-1 rounded-full">⏱️ 3 Minutos</span>
+                </div>
+
+                <div class="speech-card p-6 rounded-2xl space-y-4 relative">
+                    <button onclick="copyBlock(this)" class="copy-btn absolute top-4 right-4 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs px-2.5 py-1 rounded border border-slate-700 flex items-center gap-1.5 transition">
+                        <i class="fa-solid fa-copy"></i> Copiar Discurso
+                    </button>
+                    <div class="speech-text space-y-3">
+                        <p>
+                            "Los resultados de la validación empírica demuestran la contundencia del sistema:"
+                        </p>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-center my-4 font-mono">
+                            <div class="bg-slate-900/90 p-4 rounded-xl border border-indigo-500/30">
+                                <div class="text-2xl font-bold text-emerald-400">67.1%</div>
+                                <div class="text-[11px] text-slate-400 mt-1">Reducción en Tiempo de Búsqueda (41.5 a 13.6 min)</div>
+                            </div>
+                            <div class="bg-slate-900/90 p-4 rounded-xl border border-indigo-500/30">
+                                <div class="text-2xl font-bold text-emerald-400">0.0%</div>
+                                <div class="text-[11px] text-slate-400 mt-1">Tasa de Extravío con Trazabilidad QR</div>
+                            </div>
+                            <div class="bg-slate-900/90 p-4 rounded-xl border border-indigo-500/30">
+                                <div class="text-2xl font-bold text-indigo-400">94.2%</div>
+                                <div class="text-[11px] text-slate-400 mt-1">Aceptación Tecnológica (Modelo TAM, N=30)</div>
+                            </div>
+                            <div class="bg-slate-900/90 p-4 rounded-xl border border-indigo-500/30">
+                                <div class="text-2xl font-bold text-indigo-400">86.4 / 100</div>
+                                <div class="text-[11px] text-slate-400 mt-1">Escala de Usabilidad SUS (Grado A - Excelente)</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-panel p-5 rounded-2xl">
+                    <div class="mermaid">
+xychart-beta
+    title "Comparativa de Tiempos y Consistencia (Antes vs. Con Archi-vite)"
+    x-axis ["Tiempo Búsqueda (min)", "Tiempo Registro (min)", "Tasa Extravío (%)", "Consistencia (%)"]
+    y-axis "Métrica" 0 --> 100
+    bar [41.5, 12.8, 14.2, 82.4]
+    bar [13.6, 4.2, 0.0, 100.0]
+                    </div>
+                </div>
+            </section>
+
+            <!-- ============================================================= -->
+            <!-- ACTO V: CONCLUSIONES Y CIERRE -->
+            <!-- ============================================================= -->
+            <section id="acto-5" class="space-y-4">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                    <h2 class="text-xl font-extrabold text-white flex items-center gap-3">
+                        <span class="w-8 h-8 rounded-lg bg-indigo-600/30 text-indigo-400 flex items-center justify-center text-sm font-mono border border-indigo-500/30">05</span>
+                        Acto V: Conclusiones y Cierre Formal
+                    </h2>
+                    <span class="text-xs bg-slate-800 text-slate-300 font-mono px-3 py-1 rounded-full">⏱️ 1 Minuto</span>
+                </div>
+
+                <div class="speech-card p-6 rounded-2xl space-y-4 relative">
+                    <button onclick="copyBlock(this)" class="copy-btn absolute top-4 right-4 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs px-2.5 py-1 rounded border border-slate-700 flex items-center gap-1.5 transition">
+                        <i class="fa-solid fa-copy"></i> Copiar Discurso
+                    </button>
+                    <div class="speech-text space-y-3">
+                        <p>
+                            "En conclusión, señores del tribunal, <strong>Archi-vite DMS</strong> cumple cabalmente con todos los requerimientos de ingeniería de software propuestos: une el mundo lógico con la bodega física, blinda el ciclo de vida mediante máquinas de estados finitos y brinda a la UNITEPC una solución soberana, escalable y de alto rendimiento."
+                        </p>
+                        <p>
+                            "Agradezco profundamente su atención y quedo a su entera disposición para la ronda de preguntas y demostraciones adicionales. Muchas gracias."
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ============================================================= -->
+            <!-- SECCIÓN ESPECIAL: PREGUNTAS TÍPICAS DEL TRIBUNAL -->
+            <!-- ============================================================= -->
+            <section id="preguntas-tribunal" class="space-y-4 pt-6">
+                <div class="flex items-center justify-between border-b border-amber-500/30 pb-3">
+                    <h2 class="text-xl font-extrabold text-amber-400 flex items-center gap-3">
+                        <i class="fa-solid fa-circle-question"></i> Banco de Preguntas Típicas del Tribunal y Respuestas de Ingeniería
+                    </h2>
+                    <span class="text-xs bg-amber-500/20 text-amber-300 font-mono px-3 py-1 rounded-full border border-amber-500/30">As bajo la manga</span>
+                </div>
+
+                <div class="space-y-4 text-sm">
+                    <!-- Pregunta 1 -->
+                    <div class="tribunal-card p-5 rounded-xl space-y-2">
+                        <h4 class="font-bold text-amber-300 flex items-center gap-2">
+                            <span class="w-5 h-5 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center text-xs">1</span>
+                            ¿Por qué eligió el modelo de Lista de Adyacencia y no Nested Sets para la jerarquía de carpetas?
+                        </h4>
+                        <p class="text-slate-300 leading-relaxed">
+                            <strong>Respuesta clave:</strong> <em>"En un DMS universitario, la inserción y movimiento de carpetas es constante. El modelo Nested Sets requiere reescribir las claves izquierda/derecha de toda la tabla en cada inserción ($O(N)$), bloqueando la base de datos. En cambio, la Lista de Adyacencia con puntero <code>parent_id</code> tiene costo $O(1)$ en inserción, y gracias a las sentencias <code>WITH RECURSIVE</code> de PostgreSQL 15, la lectura de subárboles completos se ejecuta en menos de 2.4 milisegundos."</em>
+                        </p>
+                    </div>
+
+                    <!-- Pregunta 2 -->
+                    <div class="tribunal-card p-5 rounded-xl space-y-2">
+                        <h4 class="font-bold text-amber-300 flex items-center gap-2">
+                            <span class="w-5 h-5 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center text-xs">2</span>
+                            ¿Cómo asegura la inmutabilidad legal de los documentos archivados?
+                        </h4>
+                        <p class="text-slate-300 leading-relaxed">
+                            <strong>Respuesta clave:</strong> <em>"La inmutabilidad se garantiza en dos capas: en la capa de aplicación mediante el autómata FSM (que prohíbe cualquier transición hacia atrás desde el estado 'Archivado') y en la capa de datos mediante restricciones transaccionales y bitácora de auditoría en tiempo real con hashes de integridad SHA-256."</em>
+                        </p>
+                    </div>
+
+                    <!-- Pregunta 3 -->
+                    <div class="tribunal-card p-5 rounded-xl space-y-2">
+                        <h4 class="font-bold text-amber-300 flex items-center gap-2">
+                            <span class="w-5 h-5 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center text-xs">3</span>
+                            ¿Qué ocurre si se corta la conexión a internet en el galpón de archivos?
+                        </h4>
+                        <p class="text-slate-300 leading-relaxed">
+                            <strong>Respuesta clave:</strong> <em>"Archi-vite está diseñado para operar en red de área local (LAN) interna institucional o contenerizado en Docker en el servidor del campus. No depende de servicios cloud externos para la resolución de QR ni para la consulta de bases de datos, garantizando autonomía operativa al 100%."</em>
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Script de Inicialización y Utilidades -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            mermaid.initialize({
+                startOnLoad: true,
+                theme: 'neutral',
+                securityLevel: 'loose'
+            });
+        });
+
+        // Cronómetro de Ensayo
+        let timerInterval = null;
+        let secondsElapsed = 0;
+        let isRunning = false;
+
+        function toggleTimer() {
+            const btn = document.getElementById('timer-btn');
+            if (isRunning) {
+                clearInterval(timerInterval);
+                isRunning = false;
+                btn.innerHTML = '<i class="fa-solid fa-play"></i>';
+            } else {
+                isRunning = true;
+                btn.innerHTML = '<i class="fa-solid fa-pause"></i>';
+                timerInterval = setInterval(() => {
+                    secondsElapsed++;
+                    const mins = String(Math.floor(secondsElapsed / 60)).padStart(2, '0');
+                    const secs = String(secondsElapsed % 60).padStart(2, '0');
+                    document.getElementById('timer-display').innerText = `${mins}:${secs}`;
+                }, 1000);
+            }
+        }
+
+        function resetTimer() {
+            clearInterval(timerInterval);
+            isRunning = false;
+            secondsElapsed = 0;
+            document.getElementById('timer-display').innerText = "00:00";
+            document.getElementById('timer-btn').innerHTML = '<i class="fa-solid fa-play"></i>';
+        }
+
+        // Copiar bloques de texto
+        function copyBlock(buttonEl) {
+            const card = buttonEl.closest('.speech-card');
+            const speechText = card ? card.querySelector('.speech-text').innerText : '';
+            if (speechText) {
+                navigator.clipboard.writeText(speechText).then(() => {
+                    showToast('¡Discurso copiado al portapapeles!');
+                });
+            }
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-text').innerText = msg;
+            toast.classList.remove('translate-y-24', 'opacity-0', 'pointer-events-none');
+            toast.classList.add('translate-y-0', 'opacity-100');
+            setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('translate-y-24', 'opacity-0', 'pointer-events-none');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

@@ -50,7 +50,7 @@ class Nodo(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     nombre = Column(String(255), nullable=False)
-    abreviacion = Column(String(10), nullable=False)
+    abreviacion = Column(String(30), nullable=False)
     codigo_inteligente = Column(String(100), unique=True, index=True)
     parent_id = Column(Integer, ForeignKey("nodos.id", ondelete="CASCADE"), nullable=True)
     es_ubicacion_fisica = Column(Boolean, default=False)
